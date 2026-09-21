@@ -1,8 +1,9 @@
 # Changelog
 
 ## 0.2.0
+- Module heißen jetzt **IEC101** und **IEC104** (Funktionspräfixe `IEC101_`/`IEC104_`, Ordner entsprechend); die GUIDs sind unverändert. Mindestversion Symcon 9.0.
 - Bibliothek heißt jetzt „NRG-Stack Fernwirktechnik“, Repo `NRGFernwirktechnik`; `LICENSE` (PolyForm Noncommercial 1.0.0) ergänzt.
-- **Neu: Modul Fernwirk104** – Symcon als gesteuerte Station (Server) nach IEC 60870-5-104 über den Symcon-Server-Socket. Eigene Verbindungsschicht `libs/FW104_Link.php`: APCI mit I-, S- und U-Rahmen, STARTDT/STOPDT/TESTFR, Sende- und Empfangsfolgezähler, Fenster k und w, Timer t0 bis t3 einstellbar, spontanes Senden, Übernahme durch eine neue Verbindung. Anwendungsschicht (`FW101_Station`) wird mit Fernwirk101 geteilt.
+- **Neu: Modul IEC104** – Symcon als gesteuerte Station (Server) nach IEC 60870-5-104 über den Symcon-Server-Socket. Eigene Verbindungsschicht `libs/FW104_Link.php`: APCI mit I-, S- und U-Rahmen, STARTDT/STOPDT/TESTFR, Sende- und Empfangsfolgezähler, Fenster k und w, Timer t0 bis t3 einstellbar, spontanes Senden, Übernahme durch eine neue Verbindung. Anwendungsschicht (`FW101_Station`) wird mit IEC101 geteilt.
 - Vorlagen `libs/FW104_Presets.php` nur aus den Unterlagen: EWE NETZ V4.2 (Anhang A, VDE-AR-N 4110, und Anhang B, VDE-AR-N 4105, je Energieart, steuerbare Ressource X einstellbar, Schwellen aus Pinst/PAV) und EWF V1.7 (Anhang D, Tabelle D.1); Verbindungsparameter aus der EWE-Kompatibilitätsliste. Offenes ist in der Vorlage gekennzeichnet.
 - Anwendungsschicht: Generalabfrage optional mit Typen ohne Zeitmarke (1, 3, 13); Prüfbefehle 104/107 werden bestätigt; Rückmeldung eines Doppelbefehls (46) auf eine Doppelmeldung (31) und eines Einzelbefehls (45) auf eine Doppelmeldung wird richtig abgebildet (vorher 0/1 statt 1/2).
 - Formulare beider Module nach SUITE.md: „Wozu dieses Modul?“, „Neu in Version“, „Dokumentation & Hilfe“, Hilfe-Knöpfe an erklärungsbedürftigen Feldern, Lizenz-Panel, geteiltes Ausblenden. Der Feedback-Hinweis fehlt, bis es einen Forum-Thread gibt.

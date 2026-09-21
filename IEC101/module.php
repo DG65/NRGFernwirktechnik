@@ -7,16 +7,16 @@ require_once __DIR__ . '/../libs/FW101_Presets.php';
 require_once __DIR__ . '/../libs/FW_IpsHost.php';
 require_once __DIR__ . '/../libs/FW_FormPanels.php';
 
-// Fernwirk101: Symcon als Unterstation (Slave) nach IEC 60870-5-101, unsymmetrisch, am
+// IEC101: Symcon als Unterstation (Slave) nach IEC 60870-5-101, unsymmetrisch, am
 // Kommunikationsmodul eines Netzbetreibers. Die Protokollschicht liegt in libs/ und ist
 // ohne IPS getestet (tests/run.php, Interoperabilitaet mit lib60870 ueber tests/interop_slave.php).
 // Dieses Modul ist nur die Anbindung an Symcon: Serial Port, Variablen, Formular.
 
-class Fernwirk101 extends IPSModule
+class IEC101 extends IPSModule
 {
     use FW_FormPanels;
 
-    private const PREFIX = 'FW101';
+    private const PREFIX = 'IEC101';
     private const MODULE_GUID = '{26B77479-45E7-42CC-AD00-2342BF794B8A}';
     private const DATA_TO_PARENT = '{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}';
 
@@ -44,7 +44,7 @@ class Fernwirk101 extends IPSModule
         $this->RegisterPropertyBoolean('RestoreOnStart', true);
 
         $this->registerDismissAttributes();
-        $this->RegisterTimer('Tick', 0, 'FW101_Tick($_IPS[\'TARGET\']);');
+        $this->RegisterTimer('Tick', 0, 'IEC101_Tick($_IPS[\'TARGET\']);');
         $this->RegisterMessage(0, IPS_KERNELMESSAGE);
     }
 
@@ -188,10 +188,10 @@ class Fernwirk101 extends IPSModule
         return [
             'purpose' => [
                 'Dieses Modul macht IP-Symcon zur kundeneigenen Fernwirkstation (Unterstation) gegenüber dem Netzbetreiber: Das Kommunikationsmodul des Netzbetreibers fragt über RS-485 nach IEC 60870-5-101 Messwerte und Meldungen ab und schickt Sollwerte und Befehle, etwa die Wirkleistungsbegrenzung.',
-                'Der Nutzen: Wer ohnehin Symcon zur Anlagensteuerung nutzt, kann die Vorgaben des Netzbetreibers direkt umsetzen, statt ein zusätzliches Fernwirkgerät zu kaufen. Nicht zu verwechseln mit der Schnittstelle zum Direktvermarkter (getrennter Kanal, z. B. Modbus TCP; dafür gibt es den Modbus-TCP-Server). Für Netzbetreiber mit IEC 104 über Ethernet gibt es das Modul Fernwirk104.',
+                'Der Nutzen: Wer ohnehin Symcon zur Anlagensteuerung nutzt, kann die Vorgaben des Netzbetreibers direkt umsetzen, statt ein zusätzliches Fernwirkgerät zu kaufen. Nicht zu verwechseln mit der Schnittstelle zum Direktvermarkter (getrennter Kanal, z. B. Modbus TCP; dafür gibt es den Modbus-TCP-Server). Für Netzbetreiber mit IEC 104 über Ethernet gibt es das Modul IEC104.',
             ],
             'news' => [
-                '• 🆕 Bibliothek „Fernwirk“ mit dem neuen Modul Fernwirk104 (IEC 60870-5-104, Ethernet); dieses Modul (101) bleibt im Kern unverändert.',
+                '• 🆕 Bibliothek „Fernwirk“ mit dem neuen Modul IEC104 (IEC 60870-5-104, Ethernet); dieses Modul (101) bleibt im Kern unverändert.',
                 '• 🔧 Rückmeldung eines Doppelbefehls (46) auf eine Doppelmeldung (31) wird jetzt richtig abgebildet (1 = AUS, 2 = EIN); vorher kam 0/1 heraus.',
                 '• 🔧 Generalabfrage kann jetzt optional mit Typen ohne Zeitmarke antworten (nur im 104-Modul eingestellt); Prüfbefehle 104/107 werden bestätigt.',
                 '• 📖 Neue Panels: „Wozu dieses Modul?“, Doku mit Klärungsstand zu Zeitmarken, Abnahme und Netztrennung, Hilfe-Knöpfe an den erklärungsbedürftigen Feldern.',
@@ -282,7 +282,7 @@ class Fernwirk101 extends IPSModule
     /** Station und Verbindungsschicht mit dem gespeicherten Zustand ausfuehren. */
     private function withStation(callable $fn): mixed
     {
-        $sem = 'FW101_' . $this->InstanceID;
+        $sem = 'IEC101_' . $this->InstanceID;
         if (!IPS_SemaphoreEnter($sem, 3000)) {
             $this->SendDebug('Sperre', 'Semaphore nicht erhalten', 0);
             return null;
@@ -301,7 +301,7 @@ class Fernwirk101 extends IPSModule
             $this->SetBuffer('state', serialize(['station' => $station->export(), 'link' => $link->export()]));
             return $result;
         } catch (Throwable $e) {
-            $this->LogMessage('Fernwirk101: ' . $e->getMessage(), KL_ERROR);
+            $this->LogMessage('IEC101: ' . $e->getMessage(), KL_ERROR);
             return null;
         } finally {
             IPS_SemaphoreLeave($sem);
@@ -336,7 +336,7 @@ class Fernwirk101 extends IPSModule
                 return $v > 0 && IPS_VariableExists($v) && (bool) GetValue($v);
             },
             'log'   => function (string $m): void {
-                $this->LogMessage('Fernwirk101: ' . $m, KL_NOTIFY);
+                $this->LogMessage('IEC101: ' . $m, KL_NOTIFY);
                 $this->SendDebug('Log', $m, 0);
             },
         ]);

@@ -1,13 +1,13 @@
 # NRG-Stack Fernwirktechnik (Repo NRGFernwirktechnik)
 
-Enthält die Module Fernwirk101 und Fernwirk104.
+Enthält die Module IEC101 und IEC104.
 
 Symcon als kundeneigene Fernwirkstation gegenüber dem Netzbetreiber. Zwei Module in einer Bibliothek, gemeinsame Anwendungsschicht:
 
 | Modul | Protokoll | Rolle | Verbindung |
 |---|---|---|---|
-| **Fernwirk101** | IEC 60870-5-101, unsymmetrisch | Unterstation (Slave), wird abgefragt | Serial Port (RS-485) |
-| **Fernwirk104** | IEC 60870-5-104 | gesteuerte Station (Server) | Server Socket (TCP, Standard-Port 2404) |
+| **IEC101** | IEC 60870-5-101, unsymmetrisch | Unterstation (Slave), wird abgefragt | Serial Port (RS-485) |
+| **IEC104** | IEC 60870-5-104 | gesteuerte Station (Server) | Server Socket (TCP, Standard-Port 2404) |
 
 **Stand 0.2.0:** Protokoll gegen einen unabhängigen Master (lib60870, 101 über Pseudo-Terminal, 104 im lokalen Netz) und gegen eigene Tests geprüft. **Nicht getestet:** Serial Port und Server Socket im echten IPS, Zeitverhalten dort, eine echte Gegenstelle, Abnahme durch den Netzbetreiber. Ob ein Netzbetreiber Symcon als Kunden-Fernwirkgerät akzeptiert, steht in keiner der vorliegenden Unterlagen – vorher klären (`docs/KLAERUNG.md`).
 
@@ -24,20 +24,20 @@ Wichtig: Das ist die **Fernwirktechnik zum Netzbetreiber** (§ 9 EEG, § 13 EnWG
 - Flatterunterdrückung (mehr als 0,5 Hz: Ungültig-Kennung, 30 s Stillsetzung), Zwischenstellung 10 s und Störstellung 1 s unterdrückt.
 - Prüfbefehle (104, 107) und Uhrzeitsynchronisation (103) werden quittiert (die Symcon-Uhr wird nicht gestellt).
 
-## Fernwirk101 (RS-485)
+## IEC101 (RS-485)
 Unsymmetrisch (FT1.2), Klasse-1-/Klasse-2-Abruf, Wiederholung bei gleichem FCB. Vorlage „E-Werk Netze V4.0“ (91 Datenpunkte, Stand 11.02.2026). Adresslängen, Zeitmarken, Faktor und Punkte einstellbar.
 1. Serial Port anlegen: 19200 Baud, 8 Datenbits, gerade Parität, 1 Stoppbit.
-2. Instanz „Fernwirk101“ anlegen, den Serial Port als übergeordnete Instanz wählen.
+2. Instanz „IEC101“ anlegen, den Serial Port als übergeordnete Instanz wählen.
 3. „Vorlage laden“, in der Tabelle je Datenpunkt die Variable eintragen, „Datenpunkte prüfen“.
 
-## Fernwirk104 (Ethernet)
+## IEC104 (Ethernet)
 Symcon wartet; das Fernwirkgateway des Netzbetreibers baut die Verbindung auf. APCI mit I-/S-/U-Rahmen, STARTDT/STOPDT/TESTFR, Sende-/Empfangsfolgezähler, k/w, t0–t3 einstellbar. Eine aktive Verbindung; eine neue STARTDT übernimmt. Nach einem Verbindungsabbruch gehen nicht quittierte Meldungen verloren, die Generalabfrage holt den Stand.
 
 Vorlagen (nur aus den Unterlagen, Offenes ist gekennzeichnet):
 - **EWE NETZ V4.2** (01.01.2026), Anhang A (VDE-AR-N 4110) und B (VDE-AR-N 4105), je Energieart (Wind, PV, Biogas, konventionell/Speicher, KWK), steuerbare Ressource X einstellbar, Schwellen aus Pinst/PAV; Verbindungsparameter aus der Kompatibilitätsliste (Port 2404, Common-Adresse 1, t0 30, t1 15, t2 10, t3 20, k 12, w 8).
 - **EWF V1.7** (gültig ab 01.10.2025), Anhang D Tabelle D.1, Anlagennummer einstellbar; t0 30, t1 250, t2 240, t3 255. Port, Common-Adresse, k/w, Schwellen und Zeitzone nennt das Dokument nicht.
 
-Einrichtung: Server Socket anlegen (Port 2404), Instanz „Fernwirk104“ mit dem Server Socket als übergeordnete Instanz, Vorlage laden, Variablen eintragen.
+Einrichtung: Server Socket anlegen (Port 2404), Instanz „IEC104“ mit dem Server Socket als übergeordnete Instanz, Vorlage laden, Variablen eintragen.
 
 ## Was es nicht macht
 - Kein symmetrischer Betrieb (101), keine Dateiübertragung, keine Zählwerte, keine Zeitsynchronisation der Symcon-Uhr.

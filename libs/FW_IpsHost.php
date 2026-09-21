@@ -5,7 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/FW101_Station.php';
 
 // Anbindung der Anwendungsschicht an Symcon (Variablen lesen, Aktionen ausfuehren, Werte speichern).
-// Gemeinsam fuer Fernwirk101 und Fernwirk104; hier und nicht in module.php, damit die Klasse nur einmal
+// Gemeinsam fuer IEC101 und IEC104; hier und nicht in module.php, damit die Klasse nur einmal
 // geladen wird (zwei Module einer Bibliothek laufen im selben PHP-Prozess).
 
 final class FW_IpsHost implements FW101_Host

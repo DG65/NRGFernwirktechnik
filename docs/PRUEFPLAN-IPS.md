@@ -3,9 +3,9 @@
 **Stand 21.09.2026: nichts davon ist gemessen.** Es gab in der Entwicklungssitzung keinen Zugriff auf einen IPS-Server oder eine Gegenstelle. Diese Liste ist für den Test an der echten Anlage. Ergebnisse bitte eintragen.
 
 ## Installation (ohne GitHub)
-Ordner der Bibliothek **mit `.git`** nach `C:\ProgramData\Symcon\modules\Fernwirk101` kopieren (Windows-IPS), im Modul-Store/„Module“ neu laden. Prüfen: es erscheinen die Module „Fernwirk101“ und „Fernwirk104“, und keine Fehlermeldung „Cannot redeclare class“ (die Host-Klasse `FW_IpsHost` und das Trait `FW_FormPanels` liegen nur in `libs/`).
+Ordner der Bibliothek **mit `.git`** nach `C:\ProgramData\Symcon\modules\IEC101` kopieren (Windows-IPS), im Modul-Store/„Module“ neu laden. Prüfen: es erscheinen die Module „IEC101“ und „IEC104“, und keine Fehlermeldung „Cannot redeclare class“ (die Host-Klasse `FW_IpsHost` und das Trait `FW_FormPanels` liegen nur in `libs/`).
 
-## Fernwirk101 (RS-485, IEC 101)
+## IEC101 (RS-485, IEC 101)
 | # | Prüfung | Erwartung | Ergebnis |
 |---|---|---|---|
 | 1 | Instanz anlegen, Serial Port als Parent (19200, 8, gerade Parität, 1) | Instanz aktiv (102) bzw. 104 ohne Punkte; Statuszeile nennt den Serial Port | |
@@ -17,7 +17,7 @@ Ordner der Bibliothek **mit `.git`** nach `C:\ProgramData\Symcon\modules\Fernwir
 | 7 | Modul-Neustart, Kernel-Neustart | Sollwerte werden aus der Modulvariable wiederhergestellt, Warteschlange leer, Init-Meldung | |
 | 8 | Sollwert, Befehl, Generalabfrage mit einer echten oder einer Test-Zentralstation | wie im Protokolltest | |
 
-## Fernwirk104 (Ethernet, IEC 104)
+## IEC104 (Ethernet, IEC 104)
 | # | Prüfung | Erwartung | Ergebnis |
 |---|---|---|---|
 | 1 | Server Socket als Parent (Port 2404) | Statuszeile grün, Port stimmt | |

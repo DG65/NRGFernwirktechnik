@@ -4,7 +4,7 @@
   "name": "NRG-Stack Fernwirktechnik",
   "url": "https://github.com/DG65/NRGFernwirktechnik",
   "compatibility": {
-    "version": "7.0"
+    "version": "9.0"
   },
   "version": "0.2.0",
   "build": 2,

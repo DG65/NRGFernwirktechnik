@@ -1,10 +1,10 @@
 {
   "id": "{88828FDD-BD0E-4C91-887C-80AE56387F13}",
-  "name": "Fernwirk104",
+  "name": "IEC104",
   "type": 3,
   "vendor": "",
   "aliases": [
-    "Fernwirk 104",
+    "IEC 104",
     "IEC 60870-5-104 Unterstation"
   ],
   "url": "https://github.com/DG65/NRGFernwirktechnik",
@@ -15,5 +15,5 @@
   "implemented": [
     "{7A1272A4-CBDB-46EF-BFC6-DCF4A53D2FC7}"
   ],
-  "prefix": "FW104"
+  "prefix": "IEC104"
 }

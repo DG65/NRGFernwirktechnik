@@ -1,5 +1,5 @@
 /*
- * Interoperabilitaetstest: lib60870 CS104-Client (Zentralstation) gegen die Unterstation Fernwirk104.
+ * Interoperabilitaetstest: lib60870 CS104-Client (Zentralstation) gegen die Unterstation IEC104.
  * Uebersetzen: tests/interop/build.sh. Aufruf: cs104_master <host> <port>
  * Die Bibliothek lib60870 (GPL) wird nur zum Testen benutzt und ist nicht Teil des Moduls.
  */

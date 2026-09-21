@@ -317,7 +317,7 @@
       "name": "Preset",
       "caption": "Vorlage",
       "options": [],
-      "onChange": "FW104_ShowPresetNotes($id, $Preset);"
+      "onChange": "IEC104_ShowPresetNotes($id, $Preset);"
     },
     {
       "type": "Label",
@@ -375,17 +375,17 @@
     {
       "type": "Button",
       "caption": "Vorlage laden (behält bereits eingetragene Variablen)",
-      "onClick": "FW104_LoadPreset($id, $Preset, $ResourceIndex, $PinstMW, $PavMW, $EmaxMWh, $GridLevel);"
+      "onClick": "IEC104_LoadPreset($id, $Preset, $ResourceIndex, $PinstMW, $PavMW, $EmaxMWh, $GridLevel);"
     },
     {
       "type": "Button",
       "caption": "Datenpunkte prüfen",
-      "onClick": "echo FW104_GetPointReport($id);"
+      "onClick": "echo IEC104_GetPointReport($id);"
     },
     {
       "type": "Button",
       "caption": "Verbindungen anzeigen",
-      "onClick": "echo FW104_GetConnectionReport($id);"
+      "onClick": "echo IEC104_GetConnectionReport($id);"
     }
   ],
   "status": [

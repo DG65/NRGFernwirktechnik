@@ -336,12 +336,12 @@
     {
       "type": "Button",
       "caption": "Vorlage laden (behält bereits eingetragene Variablen)",
-      "onClick": "FW101_LoadPreset($id, $Preset);"
+      "onClick": "IEC101_LoadPreset($id, $Preset);"
     },
     {
       "type": "Button",
       "caption": "Datenpunkte prüfen",
-      "onClick": "echo FW101_GetPointReport($id);"
+      "onClick": "echo IEC101_GetPointReport($id);"
     }
   ],
   "status": [

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Minimaler IPS-Nachbau fuer die Modul-Stub-Tests (Fernwirk101 und Fernwirk104).
+// Minimaler IPS-Nachbau fuer die Modul-Stub-Tests (IEC101 und IEC104).
 // Kein Ersatz fuer einen Test im echten IPS.
 
 date_default_timezone_set('Europe/Berlin');
@@ -27,8 +27,8 @@ function IPS_SemaphoreLeave(string $n): bool { return true; }
 function IPS_GetInstance(int $id): array { return ['ConnectionID' => $GLOBALS['ips']['parent'] ?? 7000, 'InstanceStatus' => 102]; }
 function IPS_GetProperty(int $id, string $n): mixed { return ['Port' => 2404, 'Open' => true][$n] ?? null; }
 function IPS_GetInstanceListByModuleID(string $g): array { return $GLOBALS['ips']['siblings'][$g] ?? [$GLOBALS['ips']['self'] ?? 1234]; }
-function FW101_GetDismissState(int $id): array { return ['purposeIntroGone' => false, 'forumHintGone' => false, 'seenNews' => '']; }
-function FW104_GetDismissState(int $id): array { return ['purposeIntroGone' => false, 'forumHintGone' => false, 'seenNews' => '']; }
+function IEC101_GetDismissState(int $id): array { return ['purposeIntroGone' => false, 'forumHintGone' => false, 'seenNews' => '']; }
+function IEC104_GetDismissState(int $id): array { return ['purposeIntroGone' => false, 'forumHintGone' => false, 'seenNews' => '']; }
 function IPS_GetName(int $id): string { return 'Serial Port'; }
 function IPS_GetConfiguration(int $id): string { return json_encode(['BaudRate' => '19200', 'DataBits' => '8', 'Parity' => 'Even', 'StopBits' => '1']); }
 function IPS_SetProperty(int $id, string $n, mixed $v): void { $GLOBALS['ips']['props'][$n] = $v; }

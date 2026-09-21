@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Formular-Bausteine nach SUITE.md ("Einheitliche Formular-Optik"), gemeinsam fuer Fernwirk101 und Fernwirk104:
+// Formular-Bausteine nach SUITE.md ("Einheitliche Formular-Optik"), gemeinsam fuer IEC101 und IEC104:
 //   0 "Wozu dieses Modul?" (einmalig wegklickbar), 1 "Neu in Version" (pro Version wegklickbar),
 //   2 "Dokumentation & Hilfe" (eingeklappt, mit Versionsnummer), ... Fachpanels ...,
 //   4 Feedback-Hinweis (einmalig wegklickbar), 5 "Ueber dieses Modul" (Lizenz, nicht wegklickbar).

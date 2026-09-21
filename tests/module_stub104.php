@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-// Laedt Fernwirk104/module.php gegen einen minimalen IPS-Nachbau, um Laufzeitfehler im Symcon-Teil
+// Laedt IEC104/module.php gegen einen minimalen IPS-Nachbau, um Laufzeitfehler im Symcon-Teil
 // (Eigenschaften, Puffer, Formular, Server-Socket-Nachrichten) zu finden. Kein Ersatz fuer einen Test im echten IPS.
 
 require_once __DIR__ . '/ips_stub.php';
 $GLOBALS['ips']['parent'] = 7100;
 $GLOBALS['ips']['self'] = 1234;
-require __DIR__ . '/../Fernwirk104/module.php';
+require __DIR__ . '/../IEC104/module.php';
 
 $fails = 0;
 function chk(bool $c, string $m): void { global $fails; if (!$c) { $fails++; echo "  FEHLER: $m\n"; } }
 
 $GLOBALS['ips']['vars'] += [201 => ['v' => 50.0, 't' => 2], 202 => ['v' => 3.2, 't' => 2], 900 => ['v' => 100.0, 't' => 2]];
-$m = new Fernwirk104();
+$m = new IEC104();
 $GLOBALS['ips']['module'] = $m;
 $m->Create();
 $m->ApplyChanges();
@@ -39,7 +39,7 @@ $kept = array_values(array_filter($rows, fn ($r) => $r['IOA'] === '30.0.12'))[0]
 chk($kept === 202, 'Neuladen der Vorlage behaelt die Variable');
 $m->ApplyChanges();
 
-function send104(Fernwirk104 $m, string $bytes, int $type = 0, string $ip = '10.0.0.1', int $port = 50000): string
+function send104(IEC104 $m, string $bytes, int $type = 0, string $ip = '10.0.0.1', int $port = 50000): string
 {
     $GLOBALS['ips']['sent'] = [];
     $m->ReceiveData(json_encode(['DataID' => '{7A1272A4-CBDB-46EF-BFC6-DCF4A53D2FC7}', 'Type' => $type, 'ClientIP' => $ip, 'ClientPort' => $port,
