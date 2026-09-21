@@ -407,6 +407,10 @@ final class FW101_Station implements FW101_LinkHost
                 return $o . chr(((int) $v & 1) | $q) . FW101_Asdu::cp56($ts, $this->cfg['timeMode']);
             case 31:
                 return $o . chr(((int) $v & 3) | $q) . FW101_Asdu::cp56($ts, $this->cfg['timeMode']);
+            case 1:
+                return $o . chr(((int) $v & 1) | $q);
+            case 3:
+                return $o . chr(((int) $v & 3) | $q);
             case 36:
                 return $o . pack('g', (float) $v) . chr($q) . FW101_Asdu::cp56($ts, $this->cfg['timeMode']);
             default: // 13
@@ -442,6 +446,8 @@ final class FW101_Station implements FW101_LinkHost
                 $this->handleInterrogation($asdu, $h);
                 return;
             case FW101_Asdu::C_CS_NA_1:
+            case FW101_Asdu::C_TS_NA_1:
+            case FW101_Asdu::C_TS_TA_1:
                 $this->push($this->mirror($asdu, FW101_Asdu::COT_ACTCON));
                 return;
             case FW101_Asdu::C_SC_NA_1:
@@ -501,7 +507,11 @@ final class FW101_Station implements FW101_LinkHost
             } elseif (!isset($this->mirrorTargets[$ioa])) {
                 continue;
             }
-            $byType[$p['type']][] = $this->objectBytes($p, $s, $known);
+            $wireType = $p['type'];
+            if (!empty($this->cfg['giPlain'])) {
+                $wireType = [30 => 1, 31 => 3, 36 => 13][$wireType] ?? $wireType;
+            }
+            $byType[$wireType][] = $this->objectBytes(['type' => $wireType] + $p, $s, $known);
         }
         ksort($byType);
         foreach ($byType as $type => $objs) {
@@ -644,7 +654,13 @@ final class FW101_Station implements FW101_LinkHost
         if ($m['var'] > 0) {
             return; // echte Rueckmeldung uebernimmt
         }
-        $v = $p['type'] === 46 ? ($wire === 2.0 ? 1 : 0) : $this->convertWire($m, $wire);
+        if ($p['type'] === 46) {
+            $v = $m['type'] === 31 ? ((int) $wire & 3) : ($wire === 2.0 ? 1 : 0);
+        } elseif ($p['type'] === 45 && $m['type'] === 31) {
+            $v = $wire != 0.0 ? 2 : 1; // Doppelmeldung: 1 = AUS, 2 = EIN
+        } else {
+            $v = $this->convertWire($m, $wire);
+        }
         $s = $this->stateOf($m['ioa']);
         $s['v'] = $v;
         $s['ts'] = $this->host->now();

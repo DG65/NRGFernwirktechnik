@@ -7,34 +7,19 @@
     },
     {
       "type": "ExpansionPanel",
-      "caption": "Schnittstelle zum Kommunikationsmodul des Netzbetreibers",
+      "caption": "Verbindung zur Zentralstation des Netzbetreibers",
       "expanded": false,
       "items": [
         {
           "type": "Label",
-          "caption": "Symcon ist hier die Unterstation (Slave); das Kommunikationsmodul des Netzbetreibers fragt ab (IEC 60870-5-101, unsymmetrisch). Der Serial Port darunter muss auf die Vorgaben des Netzbetreibers stehen, z. B. 19200 Baud, 8 Datenbits, gerade Parität, 1 Stoppbit."
+          "caption": "Symcon ist hier die gesteuerte Station (Server): das Fernwirkgateway des Netzbetreibers baut die Verbindung auf und fragt ab (IEC 60870-5-104). Den Server Socket als übergeordnete Instanz wählen und dort den Port eintragen (Standard 2404). Adress- und Telegrammlängen sind in der 104 festgelegt (Common-Adresse 2 Byte, Übertragungsursache 2 Byte, Objektadresse 3 Byte)."
         },
         {
           "type": "NumberSpinner",
-          "name": "LinkAddress",
-          "caption": "Linkadresse",
-          "minimum": 0,
-          "maximum": 65534
-        },
-        {
-          "type": "Select",
-          "name": "LinkAddressLength",
-          "caption": "Länge der Linkadresse",
-          "options": [
-            {
-              "caption": "1 Byte",
-              "value": 1
-            },
-            {
-              "caption": "2 Byte",
-              "value": 2
-            }
-          ]
+          "name": "Port",
+          "caption": "Erwarteter Port am Server Socket (nur zum Vergleich in der Statuszeile)",
+          "minimum": 1,
+          "maximum": 65535
         },
         {
           "type": "NumberSpinner",
@@ -44,68 +29,19 @@
           "maximum": 65534
         },
         {
-          "type": "Select",
-          "name": "CommonAddressLength",
-          "caption": "Länge der Common-Adresse",
-          "options": [
-            {
-              "caption": "1 Byte",
-              "value": 1
-            },
-            {
-              "caption": "2 Byte",
-              "value": 2
-            }
-          ]
-        },
-        {
           "type": "CheckBox",
           "name": "AcceptCommonZero",
           "caption": "Common-Adresse 0 zusätzlich akzeptieren"
         },
         {
-          "type": "Select",
-          "name": "CauseLength",
-          "caption": "Länge der Übertragungsursache",
-          "options": [
-            {
-              "caption": "1 Byte",
-              "value": 1
-            },
-            {
-              "caption": "2 Byte",
-              "value": 2
-            }
-          ]
-        },
-        {
-          "type": "Select",
-          "name": "IOALength",
-          "caption": "Länge der Objektadresse",
-          "options": [
-            {
-              "caption": "1 Byte",
-              "value": 1
-            },
-            {
-              "caption": "2 Byte",
-              "value": 2
-            },
-            {
-              "caption": "3 Byte",
-              "value": 3
-            }
-          ]
-        },
-        {
-          "type": "CheckBox",
-          "name": "AckSingleChar",
-          "caption": "Einzelzeichen E5 als Quittung verwenden (nur wenn die Zentralstation es unterstützt)"
-        },
-        {
           "type": "CheckBox",
           "name": "SendInit",
-          "caption": "Nach Verbindungsaufbau „Initialisierung beendet“ (M_EI_NA_1) melden"
+          "caption": "Nach STARTDT „Initialisierung beendet“ (M_EI_NA_1) melden"
+        },
+        {
+          "type": "CheckBox",
+          "name": "GiPlain",
+          "caption": "Generalabfrage mit Typen ohne Zeitmarke beantworten (1, 3, 13; EWE NETZ verlangt das)"
         },
         {
           "type": "Select",
@@ -126,13 +62,62 @@
     },
     {
       "type": "ExpansionPanel",
+      "caption": "Zeitüberwachung und Fenster (t0–t3, k, w)",
+      "expanded": false,
+      "items": [
+        {
+          "type": "NumberSpinner",
+          "name": "T0",
+          "caption": "t0: Zeitüberwachung für den Verbindungsaufbau (s); eine Verbindung ohne jeden Rahmen wird nach t0 verworfen",
+          "minimum": 1,
+          "maximum": 255
+        },
+        {
+          "type": "NumberSpinner",
+          "name": "T1",
+          "caption": "t1: Zeitüberwachung für gesendete Daten und Testrahmen (s)",
+          "minimum": 1,
+          "maximum": 255
+        },
+        {
+          "type": "NumberSpinner",
+          "name": "T2",
+          "caption": "t2: Quittung senden, wenn keine Daten in Gegenrichtung gehen (s); muss kleiner als t1 sein",
+          "minimum": 1,
+          "maximum": 255
+        },
+        {
+          "type": "NumberSpinner",
+          "name": "T3",
+          "caption": "t3: Testrahmen (TESTFR) nach Ruhezeit (s)",
+          "minimum": 1,
+          "maximum": 255
+        },
+        {
+          "type": "NumberSpinner",
+          "name": "K",
+          "caption": "k: höchstens so viele unquittierte Datenrahmen",
+          "minimum": 1,
+          "maximum": 32767
+        },
+        {
+          "type": "NumberSpinner",
+          "name": "W",
+          "caption": "w: spätestens nach so vielen empfangenen Datenrahmen quittieren; höchstens k",
+          "minimum": 1,
+          "maximum": 32767
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
       "caption": "Verhalten",
       "expanded": false,
       "items": [
         {
           "type": "NumberSpinner",
           "name": "ThresholdPercent",
-          "caption": "Messwerte: Schwelle für spontane Übertragung (%)",
+          "caption": "Messwerte: allgemeine Schwelle für spontane Übertragung (%), wenn beim Punkt keine eigene Schwelle steht",
           "digits": 1,
           "minimum": 0
         },
@@ -146,13 +131,13 @@
         {
           "type": "NumberSpinner",
           "name": "MaxInterval",
-          "caption": "Messwerte: spätestens nach (Sekunden) erneut senden",
+          "caption": "Messwerte: spätestens nach (Sekunden) erneut senden (EWE NETZ: 300)",
           "minimum": 5
         },
         {
           "type": "NumberSpinner",
           "name": "FailHours",
-          "caption": "Ausfall des Kommunikationsmoduls: nach (Stunden) Sollwerte auf den Ausfallwert (0 = aus)",
+          "caption": "Ausfall der Zentralstation: nach (Stunden) Sollwerte auf den Ausfallwert (0 = aus; Netzbetreiber verlangen meist, dass der letzte Sollwert bestehen bleibt)",
           "minimum": 0
         },
         {
@@ -179,7 +164,7 @@
       "items": [
         {
           "type": "Label",
-          "caption": "Meldungen (30, 31) und Messwerte (36, 13): die Quell-Variable im Feld „Variable“ eintragen. Befehle (45, 46) und Sollwerte (50): die Ziel-Variable, in die geschrieben wird. Punkte ohne Variable werden nicht gemeldet; Rückmeldepunkte, auf die ein Sollwert oder Befehl zeigt, werden vom Modul selbst geführt. Faktor: Wert auf der Leitung = Wert der Variable × Faktor (z. B. −1 für „Erzeugung negativ“)."
+          "caption": "Meldungen (30, 31) und Messwerte (36, 13): die Quell-Variable im Feld „Variable“ eintragen. Befehle (45, 46) und Sollwerte (50): die Ziel-Variable, in die geschrieben wird; Varianten mit Zeitmarke (58, 59, 63) werden mit angenommen. Punkte ohne Variable werden nicht gemeldet; Rückmeldepunkte, auf die ein Sollwert oder Befehl zeigt, werden vom Modul selbst geführt. Faktor: Wert auf der Leitung = Wert der Variable × Faktor (z. B. −1 für „Erzeugung negativ“)."
         },
         {
           "type": "List",
@@ -223,15 +208,15 @@
                     "value": 13
                   },
                   {
-                    "caption": "45 Einzelbefehl",
+                    "caption": "45 Einzelbefehl (auch 58)",
                     "value": 45
                   },
                   {
-                    "caption": "46 Doppelbefehl",
+                    "caption": "46 Doppelbefehl (auch 59)",
                     "value": 46
                   },
                   {
-                    "caption": "50 Sollwert",
+                    "caption": "50 Sollwert (auch 63)",
                     "value": 50
                   }
                 ]
@@ -331,17 +316,76 @@
       "type": "Select",
       "name": "Preset",
       "caption": "Vorlage",
-      "options": []
+      "options": [],
+      "onChange": "FW104_ShowPresetNotes($id, $Preset);"
+    },
+    {
+      "type": "Label",
+      "name": "PresetNotes",
+      "caption": ""
+    },
+    {
+      "type": "NumberSpinner",
+      "name": "ResourceIndex",
+      "caption": "Steuerbare Ressource: Nummer (EWE: 0 für die erste, 1 für die zweite …; EWF: Anlagennummer ab 1)",
+      "minimum": 0,
+      "maximum": 255,
+      "value": 0
+    },
+    {
+      "type": "NumberSpinner",
+      "name": "PinstMW",
+      "caption": "Installierte Leistung Pinst der Ressource (MW), für die Schwellen 1 % · Pinst (0 = nicht setzen)",
+      "digits": 3,
+      "minimum": 0,
+      "value": 0
+    },
+    {
+      "type": "NumberSpinner",
+      "name": "PavMW",
+      "caption": "Anschlusswirkleistung PAV am Netzanschlusspunkt (MW), für die Schwellen am NAP (0 = nicht setzen)",
+      "digits": 3,
+      "minimum": 0,
+      "value": 0
+    },
+    {
+      "type": "NumberSpinner",
+      "name": "EmaxMWh",
+      "caption": "Größter Energieinhalt des Speichers (MWh), nur bei Speichern (0 = nicht setzen)",
+      "digits": 3,
+      "minimum": 0,
+      "value": 0
+    },
+    {
+      "type": "Select",
+      "name": "GridLevel",
+      "caption": "Netzanschlusspunkt (Spannungsschwelle 50 V bzw. 2 V)",
+      "options": [
+        {
+          "caption": "Mittelspannung",
+          "value": "ms"
+        },
+        {
+          "caption": "Niederspannung",
+          "value": "ns"
+        }
+      ],
+      "value": "ms"
     },
     {
       "type": "Button",
       "caption": "Vorlage laden (behält bereits eingetragene Variablen)",
-      "onClick": "FW101_LoadPreset($id, $Preset);"
+      "onClick": "FW104_LoadPreset($id, $Preset, $ResourceIndex, $PinstMW, $PavMW, $EmaxMWh, $GridLevel);"
     },
     {
       "type": "Button",
       "caption": "Datenpunkte prüfen",
-      "onClick": "echo FW101_GetPointReport($id);"
+      "onClick": "echo FW104_GetPointReport($id);"
+    },
+    {
+      "type": "Button",
+      "caption": "Verbindungen anzeigen",
+      "onClick": "echo FW104_GetConnectionReport($id);"
     }
   ],
   "status": [
@@ -359,6 +403,11 @@
       "code": 201,
       "icon": "error",
       "caption": "Ungültige Datenpunkte (Adresse oder Typ)"
+    },
+    {
+      "code": 202,
+      "icon": "error",
+      "caption": "Ungültige Zeitparameter (t2 muss kleiner als t1 sein, w höchstens k)"
     }
   ]
 }

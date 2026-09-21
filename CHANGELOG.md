@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0
+- Bibliothek heißt jetzt „NRG-Stack Fernwirktechnik“, Repo `NRGFernwirktechnik`; `LICENSE` (PolyForm Noncommercial 1.0.0) ergänzt.
+- **Neu: Modul Fernwirk104** – Symcon als gesteuerte Station (Server) nach IEC 60870-5-104 über den Symcon-Server-Socket. Eigene Verbindungsschicht `libs/FW104_Link.php`: APCI mit I-, S- und U-Rahmen, STARTDT/STOPDT/TESTFR, Sende- und Empfangsfolgezähler, Fenster k und w, Timer t0 bis t3 einstellbar, spontanes Senden, Übernahme durch eine neue Verbindung. Anwendungsschicht (`FW101_Station`) wird mit Fernwirk101 geteilt.
+- Vorlagen `libs/FW104_Presets.php` nur aus den Unterlagen: EWE NETZ V4.2 (Anhang A, VDE-AR-N 4110, und Anhang B, VDE-AR-N 4105, je Energieart, steuerbare Ressource X einstellbar, Schwellen aus Pinst/PAV) und EWF V1.7 (Anhang D, Tabelle D.1); Verbindungsparameter aus der EWE-Kompatibilitätsliste. Offenes ist in der Vorlage gekennzeichnet.
+- Anwendungsschicht: Generalabfrage optional mit Typen ohne Zeitmarke (1, 3, 13); Prüfbefehle 104/107 werden bestätigt; Rückmeldung eines Doppelbefehls (46) auf eine Doppelmeldung (31) und eines Einzelbefehls (45) auf eine Doppelmeldung wird richtig abgebildet (vorher 0/1 statt 1/2).
+- Formulare beider Module nach SUITE.md: „Wozu dieses Modul?“, „Neu in Version“, „Dokumentation & Hilfe“, Hilfe-Knöpfe an erklärungsbedürftigen Feldern, Lizenz-Panel, geteiltes Ausblenden. Der Feedback-Hinweis fehlt, bis es einen Forum-Thread gibt.
+- Gemeinsame Bausteine in `libs/` (`FW_IpsHost`, `FW_FormPanels`), damit die Klassen nur einmal geladen werden.
+- Dokumentation: `docs/KLAERUNG.md` (Netztrennung/WAN, Zeitmarken, Abnahme), `docs/PRUEFPLAN-IPS.md`.
+- Tests: `tests/run104.php` (104-Schicht, Zeit simuliert), `tests/module_stub104.php`, `tests/interop104.php` mit `tests/interop/cs104_master.c` (lib60870-Client, 27 Prüfungen, im lokalen Netz gegen die PHP-Unterstation gelaufen).
+- Nicht getestet: echter Serial Port bzw. Server Socket im IPS, Zeitverhalten dort, echte Gegenstelle, Abnahme durch den Netzbetreiber. Der 101-Interop-Test gegen lib60870 wurde nach den Änderungen an der gemeinsamen Anwendungsschicht nicht wiederholt (109 Protokollprüfungen laufen).
+
 ## 0.1.0
 - Erste Fassung: FT1.2 unsymmetrisch (Slave), ASDU-Typen 30/31/36/13 (Monitor), 45/46/50 (Steuerung), Generalabfrage, Vorlage E-Werk Netze V4.0.
 - Geprüft mit eigenem Test-Master (109 Prüfungen) und mit lib60870 (CS101 unbalanced) über ein Pseudo-Terminal; nicht an echter Hardware.

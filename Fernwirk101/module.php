@@ -4,71 +4,20 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/FW101_Station.php';
 require_once __DIR__ . '/../libs/FW101_Presets.php';
+require_once __DIR__ . '/../libs/FW_IpsHost.php';
+require_once __DIR__ . '/../libs/FW_FormPanels.php';
 
 // Fernwirk101: Symcon als Unterstation (Slave) nach IEC 60870-5-101, unsymmetrisch, am
 // Kommunikationsmodul eines Netzbetreibers. Die Protokollschicht liegt in libs/ und ist
 // ohne IPS getestet (tests/run.php, Interoperabilitaet mit lib60870 ueber tests/interop_slave.php).
 // Dieses Modul ist nur die Anbindung an Symcon: Serial Port, Variablen, Formular.
 
-final class FW101_IpsHost implements FW101_Host
-{
-    /** @param array<string,callable> $cb */
-    public function __construct(private array $cb)
-    {
-    }
-
-    public function value(int $varId): mixed
-    {
-        return IPS_VariableExists($varId) ? GetValue($varId) : null;
-    }
-
-    public function action(int $varId, mixed $value): bool
-    {
-        if (!IPS_VariableExists($varId)) {
-            return false;
-        }
-        try {
-            RequestAction($varId, $value);
-            return true;
-        } catch (Throwable $e) {
-            ($this->cb['log'])('RequestAction #' . $varId . ' fehlgeschlagen: ' . $e->getMessage());
-            return false;
-        }
-    }
-
-    public function varType(int $varId): int
-    {
-        return IPS_VariableExists($varId) ? (int) IPS_GetVariable($varId)['VariableType'] : 2;
-    }
-
-    public function store(string $key, mixed $value): void
-    {
-        ($this->cb['store'])($key, $value);
-    }
-
-    public function load(string $key): mixed
-    {
-        return ($this->cb['load'])($key);
-    }
-
-    public function localMode(): bool
-    {
-        return ($this->cb['local'])();
-    }
-
-    public function log(string $message): void
-    {
-        ($this->cb['log'])($message);
-    }
-
-    public function now(): float
-    {
-        return microtime(true);
-    }
-}
-
 class Fernwirk101 extends IPSModule
 {
+    use FW_FormPanels;
+
+    private const PREFIX = 'FW101';
+    private const MODULE_GUID = '{26B77479-45E7-42CC-AD00-2342BF794B8A}';
     private const DATA_TO_PARENT = '{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}';
 
     public function Create()
@@ -94,6 +43,7 @@ class Fernwirk101 extends IPSModule
         $this->RegisterPropertyBoolean('LocalBlocksSetpoints', false);
         $this->RegisterPropertyBoolean('RestoreOnStart', true);
 
+        $this->registerDismissAttributes();
         $this->RegisterTimer('Tick', 0, 'FW101_Tick($_IPS[\'TARGET\']);');
         $this->RegisterMessage(0, IPS_KERNELMESSAGE);
     }
@@ -145,6 +95,7 @@ class Fernwirk101 extends IPSModule
         if (IPS_GetKernelRunlevel() === KR_READY) {
             $this->updateStatusVariables();
         }
+        $this->adoptDismissFromSibling();
     }
 
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
@@ -200,6 +151,21 @@ class Fernwirk101 extends IPSModule
             if (($e['name'] ?? '') === 'StatusText') {
                 $e['caption'] = $this->statusText();
             }
+            if (($e['caption'] ?? '') === 'Schnittstelle zum Kommunikationsmodul des Netzbetreibers') {
+                array_unshift($e['items'], $this->helpButton('Zeitmarken: Ortszeit oder UTC?', [
+                    'Jede Meldung und jeder zeitgestempelte Messwert trägt eine Zeitmarke (CP56Time2a). Ob der Netzbetreiber sie als Ortszeit (mit Sommerzeitbit) oder als UTC erwartet, hängt von seiner Zentralstation ab.',
+                    'In den Unterlagen von E-Werk Netze V4.0 steht dazu nichts. Bis das mit dem Netzbetreiber geklärt ist, ist „UTC“ die Vorgabe. Stellt sich beim Test ein Versatz von ein bis zwei Stunden heraus, hier umstellen.',
+                ], 480));
+            }
+            if (($e['caption'] ?? '') === 'Datenpunkte') {
+                array_splice($e['items'], 1, 0, [$this->helpButton('Was bedeuten Faktor, Schwelle, Rückmeldung und Pflicht?', [
+                    'Faktor: Wert auf der Leitung = Wert der Variable × Faktor. −1 dreht das Vorzeichen (z. B. „Erzeugung negativ“).',
+                    'Schwelle: ab welcher Änderung ein Messwert spontan gesendet wird (in der Einheit des Messwerts). 0 = die allgemeine Schwelle in Prozent aus „Verhalten“.',
+                    'Min/Max: erlaubter Bereich eines Sollwerts; außerhalb wird der Sollwert mit negativer Quittung abgelehnt.',
+                    'Rückmeldung: Adresse des Messwerts, der nach einem Sollwert oder Befehl exakt den empfangenen Wert meldet. Ausfallwert: Sollwert, auf den nach Ausfall des Kommunikationsmoduls zurückgefallen wird.',
+                    'Pflicht: in der Datenpunktliste des Netzbetreibers vorangekreuzt. „Datenpunkte prüfen“ zeigt Pflichtpunkte ohne Variable.',
+                ], 520)]);
+            }
         }
         unset($e);
         foreach ($form['actions'] as &$a) {
@@ -208,7 +174,39 @@ class Fernwirk101 extends IPSModule
             }
         }
         unset($a);
+        $form['elements'] = $this->assembleForm($form['elements']);
         return json_encode($form);
+    }
+
+    protected function licenseUrl(): string
+    {
+        return 'https://github.com/DG65/NRGFernwirktechnik/blob/beta/LICENSE';
+    }
+
+    protected function formTexts(): array
+    {
+        return [
+            'purpose' => [
+                'Dieses Modul macht IP-Symcon zur kundeneigenen Fernwirkstation (Unterstation) gegenüber dem Netzbetreiber: Das Kommunikationsmodul des Netzbetreibers fragt über RS-485 nach IEC 60870-5-101 Messwerte und Meldungen ab und schickt Sollwerte und Befehle, etwa die Wirkleistungsbegrenzung.',
+                'Der Nutzen: Wer ohnehin Symcon zur Anlagensteuerung nutzt, kann die Vorgaben des Netzbetreibers direkt umsetzen, statt ein zusätzliches Fernwirkgerät zu kaufen. Nicht zu verwechseln mit der Schnittstelle zum Direktvermarkter (getrennter Kanal, z. B. Modbus TCP; dafür gibt es den Modbus-TCP-Server). Für Netzbetreiber mit IEC 104 über Ethernet gibt es das Modul Fernwirk104.',
+            ],
+            'news' => [
+                '• 🆕 Bibliothek „Fernwirk“ mit dem neuen Modul Fernwirk104 (IEC 60870-5-104, Ethernet); dieses Modul (101) bleibt im Kern unverändert.',
+                '• 🔧 Rückmeldung eines Doppelbefehls (46) auf eine Doppelmeldung (31) wird jetzt richtig abgebildet (1 = AUS, 2 = EIN); vorher kam 0/1 heraus.',
+                '• 🔧 Generalabfrage kann jetzt optional mit Typen ohne Zeitmarke antworten (nur im 104-Modul eingestellt); Prüfbefehle 104/107 werden bestätigt.',
+                '• 📖 Neue Panels: „Wozu dieses Modul?“, Doku mit Klärungsstand zu Zeitmarken, Abnahme und Netztrennung, Hilfe-Knöpfe an den erklärungsbedürftigen Feldern.',
+            ],
+            'newsVersion' => '0.2',
+            'doc' => [
+                'Dieses Modul macht Symcon zur kundeneigenen Fernwirkstation gegenüber dem Kommunikationsmodul eines Netzbetreibers (IEC 60870-5-101 über RS-485). Es ersetzt keine Abnahme: Ob ein Netzbetreiber Symcon als Fernwirkgerät akzeptiert, ist mit ihm vorher zu klären, ebenso Inbetriebnahmeprotokoll, Wirk- und Blindleistungstest.',
+                'Vorlage E-Werk Netze V4.0: Datenpunktliste der „Kunden-Richtlinie für Fernwirkanbindungen“ (Stand 11.02.2026). Andere Netzbetreiber nutzen dieselbe Grundstruktur mit abweichenden Adressen und Einheiten; Adresslängen, Zeitmarken, Faktoren und Punkte sind deshalb frei einstellbar.',
+                'Entprellung im Millisekundenbereich (10 ms) ist im Symcon-Kernel nicht möglich; die Flatterunterdrückung (mehr als 0,5 Hz, 30 s Stillsetzung) und die Zwischen- und Störstellungsunterdrückung sind umgesetzt.',
+                'Stand der Prüfung: Protokoll gegen einen unabhängigen Master (lib60870) und eigene Tests geprüft. Der Serial Port im IPS, das Zeitverhalten, eine echte Gegenstelle und die Abnahme durch den Netzbetreiber sind noch nicht getestet.',
+                'Getrennte Kanäle: Diese Anbindung ist die Fernwirktechnik zum Netzbetreiber (§ 9 EEG, § 13 EnWG). Die Direktvermarkter-Schnittstelle (§ 10b EEG) ist ein eigener Kanal; Netzbetreiber verlangen ausdrücklich die Trennung.',
+                'Zeitmarken, Abnahme und Netztrennung (ausführlich in docs/KLAERUNG.md): Ob Zeitmarken UTC oder Ortszeit sein sollen, steht in den vorliegenden Unterlagen nicht. Die Abnahme erfolgt durch den Netzbetreiber am Netzanschlusspunkt. Bei EWE NETZ gilt zusätzlich: die kundenseitige Fernwirkhardware darf während der Verbindung nicht zugleich über dieselbe Hardware mit einem WAN (z. B. Internet) verbunden sein.',
+            ],
+            'feedbackUrl' => '',
+        ];
     }
 
     /** Vorlage laden; bereits eingetragene Variablen und Einstellungen je Adresse bleiben erhalten. */
@@ -328,7 +326,7 @@ class Fernwirk101 extends IPSModule
             'sendInit'             => $this->ReadPropertyBoolean('SendInit'),
         ];
         $points = FW101_Station::normalize(json_decode($this->ReadPropertyString('Points'), true) ?: []);
-        $host = new FW101_IpsHost([
+        $host = new FW_IpsHost([
             'store' => function (string $key, mixed $value): void {
                 $this->storeValue($key, $value);
             },

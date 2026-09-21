@@ -1,12 +1,12 @@
 {
   "id": "{E23A818E-847D-4C68-830F-1FC46541CCEE}",
   "author": "DG65",
-  "name": "Fernwirk101",
-  "url": "https://github.com/DG65/Fernwirk101",
+  "name": "NRG-Stack Fernwirktechnik",
+  "url": "https://github.com/DG65/NRGFernwirktechnik",
   "compatibility": {
     "version": "7.0"
   },
-  "version": "0.1.0",
-  "build": 1,
-  "date": 1790011810
+  "version": "0.2.0",
+  "build": 2,
+  "date": 1790020123
 }

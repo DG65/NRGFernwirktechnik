@@ -21,6 +21,8 @@ final class FW101_Asdu
     public const C_SE_TC_1 = 63;
     public const C_IC_NA_1 = 100;
     public const C_CS_NA_1 = 103;
+    public const C_TS_NA_1 = 104;
+    public const C_TS_TA_1 = 107;
 
     // Uebertragungsursachen
     public const COT_PERIODIC = 1;

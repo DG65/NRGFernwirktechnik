@@ -5,71 +5,7 @@ declare(strict_types=1);
 // Laedt Fernwirk101/module.php gegen einen minimalen IPS-Nachbau, um Laufzeitfehler im Symcon-Teil
 // (Eigenschaften, Puffer, Formular, Ereignisse) zu finden. Kein Ersatz fuer einen Test im echten IPS.
 
-date_default_timezone_set('Europe/Berlin');
-const KR_READY = 10103;
-const IPS_KERNELMESSAGE = 10100;
-const VM_UPDATE = 10603;
-const KL_ERROR = 4;
-const KL_NOTIFY = 1;
-
-$GLOBALS['ips'] = ['vars' => [], 'ident' => [], 'props' => [], 'buf' => [], 'sent' => [], 'log' => [], 'next' => 5000, 'actions' => []];
-
-function IPS_VariableExists(int $id): bool { return isset($GLOBALS['ips']['vars'][$id]); }
-function GetValue(int $id): mixed { return $GLOBALS['ips']['vars'][$id]['v']; }
-function SetValueInteger(int $id, int $v): void { $GLOBALS['ips']['vars'][$id]['v'] = $v; $GLOBALS['ips']['vars'][$id]['u'] = time(); }
-function SetValueFloat(int $id, float $v): void { $GLOBALS['ips']['vars'][$id]['v'] = $v; $GLOBALS['ips']['vars'][$id]['u'] = time(); }
-function RequestAction(int $id, mixed $v): void { $GLOBALS['ips']['actions'][] = [$id, $v]; $GLOBALS['ips']['vars'][$id]['v'] = $v; }
-function IPS_GetVariable(int $id): array { return ['VariableType' => $GLOBALS['ips']['vars'][$id]['t'], 'VariableUpdated' => $GLOBALS['ips']['vars'][$id]['u'] ?? 0]; }
-function IPS_GetKernelRunlevel(): int { return KR_READY; }
-function IPS_SemaphoreEnter(string $n, int $t): bool { return true; }
-function IPS_SemaphoreLeave(string $n): bool { return true; }
-function IPS_GetInstance(int $id): array { return ['ConnectionID' => 7000, 'InstanceStatus' => 102]; }
-function IPS_GetName(int $id): string { return 'Serial Port'; }
-function IPS_GetConfiguration(int $id): string { return json_encode(['BaudRate' => '19200', 'DataBits' => '8', 'Parity' => 'Even', 'StopBits' => '1']); }
-function IPS_SetProperty(int $id, string $n, mixed $v): void { $GLOBALS['ips']['props'][$n] = $v; }
-function IPS_ApplyChanges(int $id): void { $GLOBALS['ips']['module']->ApplyChanges(); }
-
-class IPSModule
-{
-    public int $InstanceID = 1234;
-    private array $regProps = [];
-    public function Create() {}
-    public function ApplyChanges() {}
-    private function reg($n, $d) { $this->regProps[$n] = $d; }
-    protected function RegisterPropertyString($n, $d) { $this->reg($n, $d); }
-    protected function RegisterPropertyInteger($n, $d) { $this->reg($n, $d); }
-    protected function RegisterPropertyBoolean($n, $d) { $this->reg($n, $d); }
-    protected function RegisterPropertyFloat($n, $d) { $this->reg($n, $d); }
-    private function prop($n) { return $GLOBALS['ips']['props'][$n] ?? $this->regProps[$n]; }
-    protected function ReadPropertyString($n) { return (string) $this->prop($n); }
-    protected function ReadPropertyInteger($n) { return (int) $this->prop($n); }
-    protected function ReadPropertyBoolean($n) { return (bool) $this->prop($n); }
-    protected function ReadPropertyFloat($n) { return (float) $this->prop($n); }
-    protected function RegisterTimer($n, $i, $s) {}
-    protected function SetTimerInterval($n, $i) {}
-    protected function RegisterMessage($s, $m) { $GLOBALS['ips']['msgs'][$s][] = $m; }
-    protected function UnregisterMessage($s, $m) {}
-    protected function GetMessageList() { return $GLOBALS['ips']['msgs'] ?? []; }
-    protected function SetStatus($s) { $GLOBALS['ips']['status'] = $s; }
-    protected function SetBuffer($n, $v) { $GLOBALS['ips']['buf'][$n] = $v; }
-    protected function GetBuffer($n) { return $GLOBALS['ips']['buf'][$n] ?? ''; }
-    protected function SendDebug($a, $b, $c) {}
-    protected function LogMessage($m, $k) { $GLOBALS['ips']['log'][] = $m; }
-    protected function ReloadForm() {}
-    protected function SendDataToParent($j) { $GLOBALS['ips']['sent'][] = $j; }
-    private function regVar($i, $t, $init) {
-        if (!isset($GLOBALS['ips']['ident'][$i])) {
-            $id = $GLOBALS['ips']['next']++;
-            $GLOBALS['ips']['ident'][$i] = $id;
-            $GLOBALS['ips']['vars'][$id] = ['v' => $init, 't' => $t];
-        }
-    }
-    protected function RegisterVariableInteger($i, $n, $p = '', $pos = 0) { $this->regVar($i, 1, 0); }
-    protected function RegisterVariableBoolean($i, $n, $p = '', $pos = 0) { $this->regVar($i, 0, false); }
-    protected function RegisterVariableFloat($i, $n, $p = '', $pos = 0) { $this->regVar($i, 2, 0.0); }
-    protected function GetIDForIdent($i) { return $GLOBALS['ips']['ident'][$i] ?? false; }
-    protected function SetValue($i, $v) { $id = $GLOBALS['ips']['ident'][$i]; $GLOBALS['ips']['vars'][$id]['v'] = $v; $GLOBALS['ips']['vars'][$id]['u'] = time(); }
-}
+require_once __DIR__ . '/ips_stub.php';
 
 require __DIR__ . '/../Fernwirk101/module.php';
 
@@ -143,6 +79,18 @@ $rep = $m->GetPointReport();
 chk(str_contains($rep, '3 von 91'), 'Bericht: 3 von 91 belegt');
 $m->Tick();
 chk($GLOBALS['ips']['vars'][$GLOBALS['ips']['ident']['MasterActive']]['v'] === true, 'Master aktiv nach Kontakt');
+// Formular nach SUITE.md: Zweck, Neu, Doku vorn; Lizenz zuletzt; Hilfe-Knoepfe vorhanden; Ausblenden wirkt
+$caps = array_map(fn ($e) => $e['caption'] ?? ($e['name'] ?? ''), $form['elements']);
+chk(str_contains($caps[0], 'Wozu dieses Modul'), 'Panel 1: Wozu dieses Modul');
+chk(str_contains($caps[1], 'Neu in Version'), 'Panel 2: Neu in Version');
+chk(str_contains($caps[2], 'Dokumentation'), 'Panel 3: Dokumentation & Hilfe');
+chk(str_contains(end($caps), 'Über dieses Modul'), 'letztes Panel: Ueber dieses Modul (Lizenz)');
+chk(str_contains(json_encode($form), 'PopupButton'), 'Hilfe-Knoepfe (PopupButton) im Formular');
+chk(!str_contains(json_encode($form), "'link' =>"), 'kein link-String');
+$m->AckPurposeIntro();
+$m->AckNews();
+$caps = array_map(fn ($e) => $e['caption'] ?? ($e['name'] ?? ''), json_decode($m->GetConfigurationForm(), true)['elements']);
+chk(!str_contains(implode('|', $caps), 'Wozu dieses Modul') && !str_contains(implode('|', $caps), 'Neu in Version'), 'nach Bestaetigen sind Zweck und Neu weg');
 chk($GLOBALS['ips']['log'] === [], 'keine Fehlermeldungen im Log: ' . json_encode($GLOBALS['ips']['log']));
 echo $fails === 0 ? "Modul-Stub: alles in Ordnung\n" : "Modul-Stub: $fails Fehler\n";
 exit($fails ? 1 : 0);
