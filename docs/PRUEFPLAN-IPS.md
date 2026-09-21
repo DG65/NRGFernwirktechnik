@@ -20,7 +20,7 @@ Ordner der Bibliothek **mit `.git`** nach `C:\ProgramData\Symcon\modules\IEC101`
 ## IEC104 (Ethernet, IEC 104)
 | # | Prüfung | Erwartung | Ergebnis |
 |---|---|---|---|
-| 1 | Server Socket als Parent (Port 2404) | Statuszeile grün, Port stimmt | |
+| 1 | Server Socket als Parent (Port 2404); Linux: `ss -ltnp \| grep 2404`, ggf. `sudo ufw allow 2404/tcp` | Statuszeile grün, Port stimmt, vom zweiten Rechner erreichbar | |
 | 2 | Verbindung mit lib60870-Client (`tests/interop/cs104_master`) im LAN | 27 Prüfungen, 0 Fehler wie im lokalen Interop-Lauf gegen den PHP-Testserver; **im IPS erst zu messen** | |
 | 3 | Server Socket liefert `Type` 1/2 (verbunden/getrennt) und `ClientIP`/`ClientPort` wie erwartet | Debug-Fenster der Instanz zeigt RX/TX je Client | |
 | 4 | Bytes ≥ 0x80 im Buffer des Server Sockets (APCI-Steuerfeld, Float-Werte) | Antworten byte-genau (Debug-Ausgabe mit Hex vergleichen) | |
