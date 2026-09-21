@@ -38,16 +38,17 @@ final class FW104_Presets
     /**
      * Verbindungs- und Verhaltensparameter der Vorlage. Nur was das Dokument vorgibt.
      * Bei EWF fehlen Angaben zur Common-Adresse (Wert) und zu k/w; die bleiben, wie eingestellt.
+     * Adress- und Telegrammlaengen sind in der 104 fest (CA 2, COT 2, IOA 3) und keine Eigenschaften.
      */
     public static function link(string $id): ?array
     {
         if (str_starts_with($id, 'ewe_')) {
-            return ['Port' => 2404, 'CommonAddress' => 1, 'CommonAddressLength' => 2, 'CauseLength' => 2, 'IOALength' => 3,
+            return ['Port' => 2404, 'CommonAddress' => 1,
                 'T0' => 30, 'T1' => 15, 'T2' => 10, 'T3' => 20, 'K' => 12, 'W' => 8,
                 'MaxInterval' => 300, 'FailHours' => 0, 'GiPlain' => true, 'TimeMode' => 'local'];
         }
         if ($id === self::EWF) {
-            return ['CommonAddressLength' => 2, 'CauseLength' => 2, 'IOALength' => 3,
+            return [
                 'T0' => 30, 'T1' => 250, 'T2' => 240, 'T3' => 255, 'FailHours' => 0, 'GiPlain' => false];
         }
         return null;

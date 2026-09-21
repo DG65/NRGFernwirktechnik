@@ -31,7 +31,13 @@ function IEC101_GetDismissState(int $id): array { return ['purposeIntroGone' => 
 function IEC104_GetDismissState(int $id): array { return ['purposeIntroGone' => false, 'forumHintGone' => false, 'seenNews' => '']; }
 function IPS_GetName(int $id): string { return 'Serial Port'; }
 function IPS_GetConfiguration(int $id): string { return json_encode(['BaudRate' => '19200', 'DataBits' => '8', 'Parity' => 'Even', 'StopBits' => '1']); }
-function IPS_SetProperty(int $id, string $n, mixed $v): void { $GLOBALS['ips']['props'][$n] = $v; }
+function IPS_SetProperty(int $id, string $n, mixed $v): void
+{
+    if (!isset($GLOBALS['ips']['registered'][$n])) {
+        throw new RuntimeException("Eigenschaft $n nicht gefunden");
+    }
+    $GLOBALS['ips']['props'][$n] = $v;
+}
 function IPS_ApplyChanges(int $id): void { $GLOBALS['ips']['module']->ApplyChanges(); }
 
 class IPSModule
@@ -40,7 +46,7 @@ class IPSModule
     private array $regProps = [];
     public function Create() {}
     public function ApplyChanges() {}
-    private function reg($n, $d) { $this->regProps[$n] = $d; }
+    private function reg($n, $d) { $this->regProps[$n] = $d; $GLOBALS['ips']['registered'][$n] = true; }
     protected function RegisterPropertyString($n, $d) { $this->reg($n, $d); }
     protected function RegisterPropertyInteger($n, $d) { $this->reg($n, $d); }
     protected function RegisterPropertyBoolean($n, $d) { $this->reg($n, $d); }

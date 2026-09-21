@@ -171,6 +171,7 @@ class IEC101 extends IPSModule
         foreach ($form['actions'] as &$a) {
             if (($a['name'] ?? '') === 'Preset') {
                 $a['options'] = FW101_Presets::options();
+                $a['value'] = $this->ReadPropertyString('Preset');
             }
         }
         unset($a);

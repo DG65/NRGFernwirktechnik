@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.2.0
+- Fix (beim ersten IPS-Test gefunden): Die 104-Vorlage setzte Eigenschaften, die es im IEC104-Modul nicht gibt (Adress-/Ursachenlängen); die Vorlagenauswahl stand auf dem ersten Eintrag statt auf der gespeicherten Vorlage. Der Stub-Test lehnt unbekannte Eigenschaften jetzt ab.
 - Module heißen jetzt **IEC101** und **IEC104** (Funktionspräfixe `IEC101_`/`IEC104_`, Ordner entsprechend); die GUIDs sind unverändert. Mindestversion Symcon 9.0.
 - Bibliothek heißt jetzt „NRG-Stack Fernwirktechnik“, Repo `NRGFernwirktechnik`; `LICENSE` (PolyForm Noncommercial 1.0.0) ergänzt.
 - **Neu: Modul IEC104** – Symcon als gesteuerte Station (Server) nach IEC 60870-5-104 über den Symcon-Server-Socket. Eigene Verbindungsschicht `libs/FW104_Link.php`: APCI mit I-, S- und U-Rahmen, STARTDT/STOPDT/TESTFR, Sende- und Empfangsfolgezähler, Fenster k und w, Timer t0 bis t3 einstellbar, spontanes Senden, Übernahme durch eine neue Verbindung. Anwendungsschicht (`FW101_Station`) wird mit IEC101 geteilt.

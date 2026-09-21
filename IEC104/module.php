@@ -234,6 +234,7 @@ class IEC104 extends IPSModule
         foreach ($form['actions'] as &$a) {
             if (($a['name'] ?? '') === 'Preset') {
                 $a['options'] = FW104_Presets::options();
+                $a['value'] = $this->ReadPropertyString('Preset');
             }
             if (($a['name'] ?? '') === 'PresetNotes') {
                 $a['caption'] = $notesOf($this->ReadPropertyString('Preset'));
