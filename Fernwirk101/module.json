@@ -1,0 +1,20 @@
+{
+  "id": "{26B77479-45E7-42CC-AD00-2342BF794B8A}",
+  "library": "{E23A818E-847D-4C68-830F-1FC46541CCEE}",
+  "name": "Fernwirk101",
+  "type": 3,
+  "vendor": "",
+  "aliases": [
+    "Fernwirk 101",
+    "IEC 60870-5-101 Unterstation"
+  ],
+  "url": "https://github.com/DG65/Fernwirk101",
+  "parentRequirements": [
+    "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}"
+  ],
+  "childRequirements": [],
+  "implemented": [
+    "{018EF6B5-AB94-40C6-AA53-46943E824ACF}"
+  ],
+  "prefix": "FW101"
+}

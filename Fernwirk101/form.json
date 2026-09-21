@@ -1,0 +1,62 @@
+{
+  "elements": [
+    { "type": "Label", "name": "StatusText", "caption": "" },
+    { "type": "ExpansionPanel", "caption": "Schnittstelle zum Kommunikationsmodul des Netzbetreibers", "expanded": false, "items": [
+      { "type": "Label", "caption": "Symcon ist hier die Unterstation (Slave); das Kommunikationsmodul des Netzbetreibers fragt ab (IEC 60870-5-101, unsymmetrisch). Der Serial Port darunter muss auf die Vorgaben des Netzbetreibers stehen, z. B. 19200 Baud, 8 Datenbits, gerade Parität, 1 Stoppbit." },
+      { "type": "NumberSpinner", "name": "LinkAddress", "caption": "Linkadresse", "minimum": 0, "maximum": 65534 },
+      { "type": "Select", "name": "LinkAddressLength", "caption": "Länge der Linkadresse", "options": [ { "caption": "1 Byte", "value": 1 }, { "caption": "2 Byte", "value": 2 } ] },
+      { "type": "NumberSpinner", "name": "CommonAddress", "caption": "Common-Adresse (ASDU-Adresse)", "minimum": 0, "maximum": 65534 },
+      { "type": "Select", "name": "CommonAddressLength", "caption": "Länge der Common-Adresse", "options": [ { "caption": "1 Byte", "value": 1 }, { "caption": "2 Byte", "value": 2 } ] },
+      { "type": "CheckBox", "name": "AcceptCommonZero", "caption": "Common-Adresse 0 zusätzlich akzeptieren" },
+      { "type": "Select", "name": "CauseLength", "caption": "Länge der Übertragungsursache", "options": [ { "caption": "1 Byte", "value": 1 }, { "caption": "2 Byte", "value": 2 } ] },
+      { "type": "Select", "name": "IOALength", "caption": "Länge der Objektadresse", "options": [ { "caption": "1 Byte", "value": 1 }, { "caption": "2 Byte", "value": 2 }, { "caption": "3 Byte", "value": 3 } ] },
+      { "type": "CheckBox", "name": "AckSingleChar", "caption": "Einzelzeichen E5 als Quittung verwenden (nur wenn die Zentralstation es unterstützt)" },
+      { "type": "CheckBox", "name": "SendInit", "caption": "Nach Verbindungsaufbau „Initialisierung beendet“ (M_EI_NA_1) melden" },
+      { "type": "Select", "name": "TimeMode", "caption": "Zeitmarken", "options": [ { "caption": "UTC", "value": "utc" }, { "caption": "Ortszeit (mit Sommerzeitbit)", "value": "local" } ] }
+    ] },
+    { "type": "ExpansionPanel", "caption": "Verhalten", "expanded": false, "items": [
+      { "type": "NumberSpinner", "name": "ThresholdPercent", "caption": "Messwerte: Schwelle für spontane Übertragung (%)", "digits": 1, "minimum": 0 },
+      { "type": "NumberSpinner", "name": "MinDelta", "caption": "Messwerte: kleinste Schwelle (absolut, gilt bei Werten nahe 0)", "digits": 4, "minimum": 0 },
+      { "type": "NumberSpinner", "name": "MaxInterval", "caption": "Messwerte: spätestens nach (Sekunden) erneut senden", "minimum": 5 },
+      { "type": "NumberSpinner", "name": "FailHours", "caption": "Ausfall des Kommunikationsmoduls: nach (Stunden) Sollwerte auf den Ausfallwert (0 = aus)", "minimum": 0 },
+      { "type": "SelectVariable", "name": "LocalModeVariable", "caption": "Ort-Betrieb (Variable, Wert wahr = Ort: Fernbefehle werden abgelehnt)" },
+      { "type": "CheckBox", "name": "LocalBlocksSetpoints", "caption": "Ort-Betrieb sperrt auch Sollwerte (Standard: nur Schalt- und Reglerbefehle)" },
+      { "type": "CheckBox", "name": "RestoreOnStart", "caption": "Beim Start die zuletzt gültigen Sollwerte erneut an die Ziel-Variablen senden" }
+    ] },
+    { "type": "ExpansionPanel", "caption": "Datenpunkte", "expanded": true, "items": [
+      { "type": "Label", "caption": "Meldungen (30, 31) und Messwerte (36, 13): die Quell-Variable im Feld „Variable“ eintragen. Befehle (45, 46) und Sollwerte (50): die Ziel-Variable, in die geschrieben wird. Punkte ohne Variable werden nicht gemeldet; Rückmeldepunkte, auf die ein Sollwert oder Befehl zeigt, werden vom Modul selbst geführt. Faktor: Wert auf der Leitung = Wert der Variable × Faktor (z. B. −1 für „Erzeugung negativ“)." },
+      { "type": "List", "name": "Points", "caption": "Datenpunkte", "add": true, "delete": true, "rowCount": 20,
+        "columns": [
+          { "caption": "Datenpunkt", "name": "Name", "width": "300px", "add": "Neuer Punkt", "edit": { "type": "ValidationTextBox" } },
+          { "caption": "Typ", "name": "Type", "width": "150px", "add": 36, "edit": { "type": "Select", "options": [
+            { "caption": "30 Einzelmeldung", "value": 30 }, { "caption": "31 Doppelmeldung", "value": 31 },
+            { "caption": "36 Messwert (Zeitmarke)", "value": 36 }, { "caption": "13 Messwert", "value": 13 },
+            { "caption": "45 Einzelbefehl", "value": 45 }, { "caption": "46 Doppelbefehl", "value": 46 }, { "caption": "50 Sollwert", "value": 50 } ] } },
+          { "caption": "Adresse", "name": "IOA", "width": "80px", "add": "0.0.0", "edit": { "type": "ValidationTextBox" } },
+          { "caption": "Variable", "name": "Var", "width": "auto", "add": 0, "edit": { "type": "SelectVariable" } },
+          { "caption": "Faktor", "name": "Factor", "width": "70px", "add": 1, "edit": { "type": "NumberSpinner", "digits": 3 } },
+          { "caption": "Schwelle", "name": "Delta", "width": "70px", "add": 0, "edit": { "type": "NumberSpinner", "digits": 3 } },
+          { "caption": "Min", "name": "Min", "width": "55px", "add": "", "edit": { "type": "ValidationTextBox" } },
+          { "caption": "Max", "name": "Max", "width": "55px", "add": "", "edit": { "type": "ValidationTextBox" } },
+          { "caption": "Rückmeldung", "name": "Mirror", "width": "85px", "add": "", "edit": { "type": "ValidationTextBox" } },
+          { "caption": "Ausfallwert", "name": "Fail", "width": "80px", "add": "", "edit": { "type": "ValidationTextBox" } },
+          { "caption": "Pflicht", "name": "Req", "width": "55px", "add": false, "edit": { "type": "CheckBox" } }
+        ], "values": [] }
+    ] },
+    { "type": "ExpansionPanel", "caption": "Doku & Hilfe", "expanded": false, "items": [
+      { "type": "Label", "caption": "Dieses Modul macht Symcon zur kundeneigenen Fernwirkstation gegenüber dem Kommunikationsmodul eines Netzbetreibers (IEC 60870-5-101 über RS-485). Es ersetzt keine Abnahme: Ob ein Netzbetreiber Symcon als Fernwirkgerät akzeptiert, ist mit ihm vorher zu klären, ebenso Inbetriebnahmeprotokoll, Wirk- und Blindleistungstest." },
+      { "type": "Label", "caption": "Vorlage E-Werk Netze V4.0: Datenpunktliste der „Kunden-Richtlinie für Fernwirkanbindungen“ (Stand 11.02.2026). Andere Netzbetreiber nutzen dieselbe Grundstruktur mit abweichenden Adressen und Einheiten; Adresslängen, Zeitmarken, Faktoren und Punkte sind deshalb frei einstellbar." },
+      { "type": "Label", "caption": "Entprellung im Millisekundenbereich (10 ms) ist im Symcon-Kernel nicht möglich; die Flatterunterdrückung (mehr als 0,5 Hz, 30 s Stillsetzung) und die Zwischen- und Störstellungsunterdrückung sind umgesetzt. Bis zum Test an einer echten Gegenstelle gilt: Verhalten am Serial Port ungeprüft." }
+    ] }
+  ],
+  "actions": [
+    { "type": "Select", "name": "Preset", "caption": "Vorlage", "options": [] },
+    { "type": "Button", "caption": "Vorlage laden (behält bereits eingetragene Variablen)", "onClick": "FW101_LoadPreset($id, $Preset);" },
+    { "type": "Button", "caption": "Datenpunkte prüfen", "onClick": "echo FW101_GetPointReport($id);" }
+  ],
+  "status": [
+    { "code": 102, "icon": "active", "caption": "Aktiv" },
+    { "code": 104, "icon": "inactive", "caption": "Keine Datenpunkte eingetragen" },
+    { "code": 201, "icon": "error", "caption": "Ungültige Datenpunkte (Adresse oder Typ)" }
+  ]
+}
