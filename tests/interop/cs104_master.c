@@ -206,8 +206,100 @@ static int takeover(const char* host, int port)
     return fails ? 1 : 0;
 }
 
+/*
+ * Lasttest: viele Sollwerte schnell hintereinander auf einer Verbindung, gleichzeitig
+ * Generalabfragen auf einer zweiten Verbindung - prueft die Semaphore-Sperre und die
+ * Sendefolgenummern unter Druck, ohne dass an der Symcon-Instanz zusaetzliche Datenpunkte
+ * noetig sind (nur der schon belegte Sollwert 30.0.1 wird benutzt).
+ * Aufruf: LOAD=<Anzahl Sollwerte> cs104_master <host> <port>
+ */
+typedef struct { volatile int actcon; volatile int actconNeg; volatile int actconIC; volatile int acttermIC; } LoadCtx;
+
+static bool loadAsduHandler(void* p, int address, CS101_ASDU asdu)
+{
+    LoadCtx* ctx = (LoadCtx*) p;
+    TypeID t = CS101_ASDU_getTypeID(asdu);
+    CS101_CauseOfTransmission cot = CS101_ASDU_getCOT(asdu);
+    if (t == C_SE_TC_1 && cot == CS101_COT_ACTIVATION_CON) {
+        if (CS101_ASDU_isNegative(asdu)) ctx->actconNeg++; else ctx->actcon++;
+    }
+    if (t == C_IC_NA_1 && cot == CS101_COT_ACTIVATION_CON) ctx->actconIC++;
+    if (t == C_IC_NA_1 && cot == CS101_COT_ACTIVATION_TERMINATION) ctx->acttermIC++;
+    int n = CS101_ASDU_getNumberOfElements(asdu);
+    for (int i = 0; i < n; i++) {
+        InformationObject io = CS101_ASDU_getElement(asdu, i);
+        if (io) InformationObject_destroy(io);
+    }
+    return true;
+}
+
+static int loadtest(const char* host, int port, int count)
+{
+    LoadCtx sp = { 0, 0, 0, 0 }, gi = { 0, 0, 0, 0 };
+    CS104_Connection conSp = CS104_Connection_create(host, port);
+    struct sCS104_APCIParameters apci = { .k = 12, .w = 8, .t0 = 10, .t1 = 15, .t2 = 10, .t3 = 3600 };
+    CS104_Connection_setAPCIParameters(conSp, &apci);
+    CS104_Connection_setASDUReceivedHandler(conSp, loadAsduHandler, &sp);
+    CS104_Connection_setRawMessageHandler(conSp, rawHandler, NULL);
+    CHECK(CS104_Connection_connect(conSp), "Verbindung fuer Sollwerte aufgebaut");
+    CS104_Connection_sendStartDT(conSp);
+    Thread_sleep(500);
+
+    CS104_Connection conGi = CS104_Connection_create(host, port);
+    CS104_Connection_setAPCIParameters(conGi, &apci);
+    CS104_Connection_setASDUReceivedHandler(conGi, loadAsduHandler, &gi);
+    CS104_Connection_setRawMessageHandler(conGi, rawHandler, NULL);
+    CHECK(CS104_Connection_connect(conGi), "Verbindung fuer Generalabfragen aufgebaut");
+    printf("Hinweis: die zweite Verbindung uebernimmt (siehe Uebernahme-Test) - ab hier ist conGi aktiv, conSp nicht mehr.\n");
+    CS104_Connection_sendStartDT(conGi);
+    Thread_sleep(500);
+
+    printf("%d Sollwerte auf conGi (aktiv) so schnell wie moeglich senden, dazwischen Generalabfragen\n", count);
+    time_t t0 = time(NULL);
+    for (int i = 0; i < count; i++) {
+        CP56Time2a now = CP56Time2a_createFromMsTimestamp(NULL, Hal_getTimeInMs());
+        InformationObject o = (InformationObject) SetpointCommandShortWithCP56Time2a_create(NULL, IOA(30,0,1), (i % 2 == 0) ? 55.0f : 56.0f, false, 0, now);
+        while (CS104_Connection_isTransmitBufferFull(conGi)) {
+            Thread_sleep(20);
+        }
+        CS104_Connection_sendProcessCommandEx(conGi, CS101_COT_ACTIVATION, 1, o);
+        InformationObject_destroy(o);
+        free(now);
+        if (i % 10 == 0) {
+            CS104_Connection_sendInterrogationCommand(conGi, CS101_COT_ACTIVATION, 1, IEC60870_QOI_STATION);
+        }
+        if (i % 20 == 0) {
+            printf("  ... %d/%d gesendet (%d s), bisher beantwortet: %d\n", i, count, (int) difftime(time(NULL), t0), gi.actcon + gi.actconNeg + sp.actcon + sp.actconNeg);
+        }
+    }
+    double sentSecs = difftime(time(NULL), t0);
+    printf("gesendet in %.0f s, warte auf die Antworten...\n", sentSecs);
+    int waited = 0;
+    while (sp.actcon + sp.actconNeg + gi.actcon + gi.actconNeg < count && waited < 20000) {
+        Thread_sleep(200);
+        waited += 200;
+    }
+    Thread_sleep(2000); // Nachzuegler
+
+    CHECK(gi.actcon + gi.actconNeg + sp.actcon + sp.actconNeg == count,
+        "alle %d Sollwerte beantwortet (aktive Verbindung: %d positiv, %d negativ; alte Verbindung: %d/%d - sollte 0 sein)",
+        count, gi.actcon, gi.actconNeg, sp.actcon, sp.actconNeg);
+    CHECK(gi.actconNeg == 0, "keine davon negativ quittiert (Werte 55/56 sind im Bereich 0..100)");
+    CHECK(gi.actconIC >= 1 && gi.acttermIC >= 1, "die zwischendurch gesendeten Generalabfragen wurden auch beantwortet (%d actcon, %d actterm)", gi.actconIC, gi.acttermIC);
+    CHECK(CS104_Connection_isConnected(conGi), "aktive Verbindung steht noch nach der Last");
+    CHECK(CS104_Connection_isConnected(conSp), "alte Verbindung (TCP) steht noch, auch wenn unbedient");
+
+    CS104_Connection_close(conSp);
+    CS104_Connection_close(conGi);
+    CS104_Connection_destroy(conSp);
+    CS104_Connection_destroy(conGi);
+    printf("\n%d Pruefungen, %d Fehler\n", checks, fails);
+    return fails ? 1 : 0;
+}
+
 int main(int argc, char** argv)
 {
+    setvbuf(stdout, NULL, _IONBF, 0);
     const char* host = argc > 1 ? argv[1] : "127.0.0.1";
     int port = argc > 2 ? atoi(argv[2]) : 2404;
     if (getenv("LONGRUN")) {
@@ -215,6 +307,9 @@ int main(int argc, char** argv)
     }
     if (getenv("TAKEOVER")) {
         return takeover(host, port);
+    }
+    if (getenv("LOAD")) {
+        return loadtest(host, port, atoi(getenv("LOAD")));
     }
     CS104_Connection con = CS104_Connection_create(host, port);
     struct sCS104_APCIParameters apci = { .k = 12, .w = 8, .t0 = 10, .t1 = 15, .t2 = 10, .t3 = getenv("CLIENT_T3") ? atoi(getenv("CLIENT_T3")) : 30 };

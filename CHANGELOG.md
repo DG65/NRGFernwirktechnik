@@ -2,7 +2,7 @@
 
 ## 0.2.0
 - Erster Test im echten IPS: IEC104 gegen lib60870 im LAN, 26 von 27 Prüfungen bestanden (der eine ist erwartetes Verhalten bei kurzer Testdauer), dazu ein Langzeit-Ruhetest (4,5 Minuten, 11 eigene TESTFR-Zyklen des Servers, kein Abbruch). Details `docs/PRUEFPLAN-IPS.md`.
-- `tests/interop/cs104_master`: neuer Ruhemodus (`LONGRUN=<Sekunden>`) fuer den Langzeit-Test und ein Uebernahme-Test (`TAKEOVER=1`, zwei Verbindungen nacheinander), beide ohne dass am IPS etwas eingestellt werden muss; beide gegen die echte IEC104-Instanz gelaufen.
+- `tests/interop/cs104_master`: neuer Ruhemodus (`LONGRUN=<Sekunden>`), ein Uebernahme-Test (`TAKEOVER=1`) und ein Lasttest (`LOAD=<Anzahl>`, viele Sollwerte in rascher Folge plus parallele Generalabfragen), alle drei ohne dass am IPS etwas eingestellt werden muss; alle drei gegen die echte IEC104-Instanz gelaufen (200 Sollwerte in 1 s, 7/7 Pruefungen).
 - „Datenpunkte prüfen“ (und bei IEC104 „Verbindungen anzeigen“) sind jetzt aufklappbare Panels im Formular statt schmaler `echo(...)`-Dialogfenster (dessen Breite Symcon fest vorgibt, ein Modul kann sie nicht setzen); Bericht ist live, „Aktualisieren“-Knopf baut das Formular neu.
 - Fix (beim ersten IPS-Test gefunden): Die 104-Vorlage setzte Eigenschaften, die es im IEC104-Modul nicht gibt (Adress-/Ursachenlängen); die Vorlagenauswahl stand auf dem ersten Eintrag statt auf der gespeicherten Vorlage. Der Stub-Test lehnt unbekannte Eigenschaften jetzt ab.
 - Module heißen jetzt **IEC101** und **IEC104** (Funktionspräfixe `IEC101_`/`IEC104_`, Ordner entsprechend); die GUIDs sind unverändert. Mindestversion Symcon 9.0.
