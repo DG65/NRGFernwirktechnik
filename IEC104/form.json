@@ -309,6 +309,42 @@
           "values": []
         }
       ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "name": "PointReportPanel",
+      "expanded": false,
+      "caption": "Datenpunkte prüfen",
+      "items": [
+        {
+          "type": "Label",
+          "name": "PointReportText",
+          "caption": ""
+        },
+        {
+          "type": "Button",
+          "caption": "Aktualisieren",
+          "onClick": "IEC104_RefreshReports($id);"
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "name": "ConnectionReportPanel",
+      "expanded": false,
+      "caption": "Verbindungen",
+      "items": [
+        {
+          "type": "Label",
+          "name": "ConnectionReportText",
+          "caption": ""
+        },
+        {
+          "type": "Button",
+          "caption": "Aktualisieren",
+          "onClick": "IEC104_RefreshReports($id);"
+        }
+      ]
     }
   ],
   "actions": [
@@ -376,16 +412,6 @@
       "type": "Button",
       "caption": "Vorlage laden (behält bereits eingetragene Variablen)",
       "onClick": "IEC104_LoadPreset($id, $Preset, $ResourceIndex, $PinstMW, $PavMW, $EmaxMWh, $GridLevel);"
-    },
-    {
-      "type": "Button",
-      "caption": "Datenpunkte prüfen",
-      "onClick": "echo IEC104_GetPointReport($id);"
-    },
-    {
-      "type": "Button",
-      "caption": "Verbindungen anzeigen",
-      "onClick": "echo IEC104_GetConnectionReport($id);"
     }
   ],
   "status": [

@@ -324,6 +324,24 @@
           "values": []
         }
       ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "name": "PointReportPanel",
+      "expanded": false,
+      "caption": "Datenpunkte prüfen",
+      "items": [
+        {
+          "type": "Label",
+          "name": "PointReportText",
+          "caption": ""
+        },
+        {
+          "type": "Button",
+          "caption": "Aktualisieren",
+          "onClick": "IEC101_RefreshReports($id);"
+        }
+      ]
     }
   ],
   "actions": [
@@ -337,11 +355,6 @@
       "type": "Button",
       "caption": "Vorlage laden (behält bereits eingetragene Variablen)",
       "onClick": "IEC101_LoadPreset($id, $Preset);"
-    },
-    {
-      "type": "Button",
-      "caption": "Datenpunkte prüfen",
-      "onClick": "echo IEC101_GetPointReport($id);"
     }
   ],
   "status": [

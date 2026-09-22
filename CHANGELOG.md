@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.2.0
+- „Datenpunkte prüfen“ (und bei IEC104 „Verbindungen anzeigen“) sind jetzt aufklappbare Panels im Formular statt schmaler `echo(...)`-Dialogfenster (dessen Breite Symcon fest vorgibt, ein Modul kann sie nicht setzen); Bericht ist live, „Aktualisieren“-Knopf baut das Formular neu.
 - Fix (beim ersten IPS-Test gefunden): Die 104-Vorlage setzte Eigenschaften, die es im IEC104-Modul nicht gibt (Adress-/Ursachenlängen); die Vorlagenauswahl stand auf dem ersten Eintrag statt auf der gespeicherten Vorlage. Der Stub-Test lehnt unbekannte Eigenschaften jetzt ab.
 - Module heißen jetzt **IEC101** und **IEC104** (Funktionspräfixe `IEC101_`/`IEC104_`, Ordner entsprechend); die GUIDs sind unverändert. Mindestversion Symcon 9.0.
 - Bibliothek heißt jetzt „NRG-Stack Fernwirktechnik“, Repo `NRGFernwirktechnik`; `LICENSE` (PolyForm Noncommercial 1.0.0) ergänzt.

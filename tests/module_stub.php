@@ -77,6 +77,11 @@ chk(str_contains($txt, 'Datenpunkten belegt'), 'Statuszeile zaehlt belegte Punkt
 echo $txt . "\n";
 $rep = $m->GetPointReport();
 chk(str_contains($rep, '3 von 91'), 'Bericht: 3 von 91 belegt');
+$form = json_decode($m->GetConfigurationForm(), true);
+$panel = array_values(array_filter($form['elements'], fn ($e) => ($e['name'] ?? '') === 'PointReportPanel'))[0] ?? null;
+chk($panel !== null, 'Panel "Datenpunkte pruefen" im Formular');
+chk($panel !== null && str_contains($panel['items'][0]['caption'], '3 von 91'), 'Panel zeigt denselben Bericht wie GetPointReport()');
+chk(!str_contains(json_encode($form), 'echo IEC'), 'kein echo(IEC..._GetPointReport/GetConnectionReport) mehr im Formular (breites Panel statt schmalem Dialog)');
 $m->Tick();
 chk($GLOBALS['ips']['vars'][$GLOBALS['ips']['ident']['MasterActive']]['v'] === true, 'Master aktiv nach Kontakt');
 // Formular nach SUITE.md: Zweck, Neu, Doku vorn; Lizenz zuletzt; Hilfe-Knoepfe vorhanden; Ausblenden wirkt

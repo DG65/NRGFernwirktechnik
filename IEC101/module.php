@@ -166,6 +166,14 @@ class IEC101 extends IPSModule
                     'Pflicht: in der Datenpunktliste des Netzbetreibers vorangekreuzt. „Datenpunkte prüfen“ zeigt Pflichtpunkte ohne Variable.',
                 ], 520)]);
             }
+            if (($e['name'] ?? '') === 'PointReportPanel') {
+                foreach ($e['items'] as &$pi) {
+                    if (($pi['name'] ?? '') === 'PointReportText') {
+                        $pi['caption'] = $this->GetPointReport();
+                    }
+                }
+                unset($pi);
+            }
         }
         unset($e);
         foreach ($form['actions'] as &$a) {
@@ -255,6 +263,12 @@ class IEC101 extends IPSModule
     }
 
     /** Bericht ueber alle Datenpunkte: belegt, unbelegt, aktuelle Werte auf der Leitung. */
+    /** "Aktualisieren" in den Bericht-Panels: baut das Formular neu (liest die Berichte live). */
+    public function RefreshReports(): void
+    {
+        $this->ReloadForm();
+    }
+
     public function GetPointReport(): string
     {
         $rows = json_decode($this->ReadPropertyString('Points'), true) ?: [];
