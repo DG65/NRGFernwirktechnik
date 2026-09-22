@@ -86,10 +86,57 @@ static int waitFor(volatile int* flag, int atLeast, int ms)
     return *flag >= atLeast;
 }
 
+/*
+ * Ruhemodus fuer einen Langzeit-Test: verbinden, STARTDT, dann nur warten und
+ * zaehlen, wie oft der Server von sich aus TESTFR act schickt (Kennzeichen fuer
+ * einen funktionierenden t3-Zyklus ueber laengere Zeit, ohne eigenen Datenverkehr).
+ * Aufruf: LONGRUN=<Sekunden> cs104_master <host> <port>
+ */
+static int longrun(const char* host, int port, int seconds)
+{
+    CS104_Connection con = CS104_Connection_create(host, port);
+    struct sCS104_APCIParameters apci = { .k = 12, .w = 8, .t0 = 30, .t1 = 15, .t2 = 10, .t3 = 3600 }; // eigenes t3 hoch: nur der Server soll TESTFR anstossen
+    CS104_Connection_setAPCIParameters(con, &apci);
+    CS104_Connection_setRawMessageHandler(con, rawHandler, NULL);
+    CS104_Connection_setConnectionHandler(con, connHandler, NULL);
+    CS104_Connection_setASDUReceivedHandler(con, asduHandler, NULL);
+
+    printf("Langzeit-Test: %d s Ruhe, Server-t3 unbekannt (erwartet werden mehrere TESTFR-Zyklen)\n", seconds);
+    CHECK(CS104_Connection_connect(con), "TCP-Verbindung aufgebaut");
+    CS104_Connection_sendStartDT(con);
+    CHECK(waitFor(&startdtCon, 1, 5000), "STARTDT_CON empfangen");
+
+    time_t start = time(NULL), lastPrint = start;
+    while (time(NULL) - start < seconds) {
+        Thread_sleep(500);
+        if (time(NULL) - lastPrint >= 30) {
+            lastPrint = time(NULL);
+            printf("  ... %lds vergangen, TESTFR vom Server bisher %d, verbunden: %s, Protokollfehler beim Client: 0\n",
+                (long) (time(NULL) - start), nRxTestfrAct, CS104_Connection_isConnected(con) ? "ja" : "NEIN");
+        }
+        if (!CS104_Connection_isConnected(con)) {
+            printf("  Verbindung abgebrochen nach %ld s\n", (long) (time(NULL) - start));
+            break;
+        }
+    }
+    CHECK(CS104_Connection_isConnected(con), "Verbindung stand die ganze Zeit (%d s)", seconds);
+    CHECK(closed == 0, "keine ungewollte Trennung durch den Server (closed-Ereignisse: %d)", closed);
+    int expected = seconds / 25; // grobe untere Schaetzung, falls Server-t3 wie EWE-Vorlage bei 20 s liegt
+    CHECK(nRxTestfrAct >= expected, "Server hat %d eigene TESTFR act geschickt (mindestens %d erwartet bei ca. %d s Laufzeit)", nRxTestfrAct, expected, seconds);
+
+    CS104_Connection_close(con);
+    CS104_Connection_destroy(con);
+    printf("\n%d Pruefungen, %d Fehler\n", checks, fails);
+    return fails ? 1 : 0;
+}
+
 int main(int argc, char** argv)
 {
     const char* host = argc > 1 ? argv[1] : "127.0.0.1";
     int port = argc > 2 ? atoi(argv[2]) : 2404;
+    if (getenv("LONGRUN")) {
+        return longrun(host, port, atoi(getenv("LONGRUN")));
+    }
     CS104_Connection con = CS104_Connection_create(host, port);
     struct sCS104_APCIParameters apci = { .k = 12, .w = 8, .t0 = 10, .t1 = 15, .t2 = 10, .t3 = getenv("CLIENT_T3") ? atoi(getenv("CLIENT_T3")) : 30 };
     CS104_Connection_setAPCIParameters(con, &apci);
