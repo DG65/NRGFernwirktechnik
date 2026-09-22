@@ -130,12 +130,91 @@ static int longrun(const char* host, int port, int seconds)
     return fails ? 1 : 0;
 }
 
+/*
+ * Uebernahme-Test: zwei Verbindungen vom selben Client-Prozess an dieselbe Unterstation.
+ * Erst A verbinden und STARTDT, dann B verbinden und STARTDT (Uebernahme). Danach:
+ * B soll bedient werden (Generalabfrage -> ACTCON/ACTTERM), A soll auf eine Generalabfrage
+ * keine Antwort mehr bekommen (nicht mehr aktiv), aber die TCP-Verbindung von A bleibt offen.
+ * Aufruf: TAKEOVER=1 cs104_master <host> <port>
+ */
+typedef struct { const char* label; volatile int actcon; volatile int actterm; } TOCtx;
+
+static bool takeoverAsduHandler(void* p, int address, CS101_ASDU asdu)
+{
+    TOCtx* ctx = (TOCtx*) p;
+    TypeID t = CS101_ASDU_getTypeID(asdu);
+    CS101_CauseOfTransmission cot = CS101_ASDU_getCOT(asdu);
+    if (t == C_IC_NA_1) {
+        if (cot == CS101_COT_ACTIVATION_CON) ctx->actcon++;
+        if (cot == CS101_COT_ACTIVATION_TERMINATION) ctx->actterm++;
+    }
+    int n = CS101_ASDU_getNumberOfElements(asdu);
+    for (int i = 0; i < n; i++) {
+        InformationObject io = CS101_ASDU_getElement(asdu, i);
+        if (io) InformationObject_destroy(io);
+    }
+    return true;
+}
+
+static int takeover(const char* host, int port)
+{
+    TOCtx a = { "A", 0, 0 }, b = { "B", 0, 0 };
+    CS104_Connection conA = CS104_Connection_create(host, port);
+    struct sCS104_APCIParameters apciA = { .k = 12, .w = 8, .t0 = 10, .t1 = 15, .t2 = 10, .t3 = 3600 };
+    CS104_Connection_setAPCIParameters(conA, &apciA);
+    CS104_Connection_setASDUReceivedHandler(conA, takeoverAsduHandler, &a);
+    CS104_Connection_setRawMessageHandler(conA, rawHandler, NULL);
+
+    printf("1. Verbindung A: verbinden und STARTDT\n");
+    CHECK(CS104_Connection_connect(conA), "A: TCP-Verbindung aufgebaut");
+    CS104_Connection_sendStartDT(conA);
+    Thread_sleep(1000);
+
+    printf("2. Verbindung A bedienen (Generalabfrage), bevor B kommt\n");
+    CS104_Connection_sendInterrogationCommand(conA, CS101_COT_ACTIVATION, 1, IEC60870_QOI_STATION);
+    Thread_sleep(2000);
+    CHECK(a.actcon >= 1 && a.actterm >= 1, "A: Generalabfrage beantwortet (actcon=%d, actterm=%d)", a.actcon, a.actterm);
+
+    printf("3. Verbindung B: verbinden und STARTDT (soll uebernehmen)\n");
+    CS104_Connection conB = CS104_Connection_create(host, port);
+    struct sCS104_APCIParameters apciB = { .k = 12, .w = 8, .t0 = 10, .t1 = 15, .t2 = 10, .t3 = 3600 };
+    CS104_Connection_setAPCIParameters(conB, &apciB);
+    CS104_Connection_setASDUReceivedHandler(conB, takeoverAsduHandler, &b);
+    CS104_Connection_setRawMessageHandler(conB, rawHandler, NULL);
+    CHECK(CS104_Connection_connect(conB), "B: TCP-Verbindung aufgebaut");
+    CS104_Connection_sendStartDT(conB);
+    Thread_sleep(1000);
+    CHECK(CS104_Connection_isConnected(conB), "B: verbunden");
+
+    printf("4. B bedienen (Generalabfrage)\n");
+    int aBefore = a.actcon;
+    CS104_Connection_sendInterrogationCommand(conB, CS101_COT_ACTIVATION, 1, IEC60870_QOI_STATION);
+    Thread_sleep(2000);
+    CHECK(b.actcon >= 1 && b.actterm >= 1, "B: Generalabfrage beantwortet (actcon=%d, actterm=%d)", b.actcon, b.actterm);
+
+    printf("5. A erneut anfragen: soll NICHT mehr bedient werden (nicht mehr aktiv)\n");
+    CS104_Connection_sendInterrogationCommand(conA, CS101_COT_ACTIVATION, 1, IEC60870_QOI_STATION);
+    Thread_sleep(2000);
+    CHECK(a.actcon == aBefore, "A: keine neue Antwort nach der Uebernahme (actcon weiterhin %d)", a.actcon);
+    CHECK(CS104_Connection_isConnected(conA), "A: TCP-Verbindung bleibt bestehen (wird nicht getrennt, nur stillgelegt)");
+
+    CS104_Connection_close(conA);
+    CS104_Connection_close(conB);
+    CS104_Connection_destroy(conA);
+    CS104_Connection_destroy(conB);
+    printf("\n%d Pruefungen, %d Fehler\n", checks, fails);
+    return fails ? 1 : 0;
+}
+
 int main(int argc, char** argv)
 {
     const char* host = argc > 1 ? argv[1] : "127.0.0.1";
     int port = argc > 2 ? atoi(argv[2]) : 2404;
     if (getenv("LONGRUN")) {
         return longrun(host, port, atoi(getenv("LONGRUN")));
+    }
+    if (getenv("TAKEOVER")) {
+        return takeover(host, port);
     }
     CS104_Connection con = CS104_Connection_create(host, port);
     struct sCS104_APCIParameters apci = { .k = 12, .w = 8, .t0 = 10, .t1 = 15, .t2 = 10, .t3 = getenv("CLIENT_T3") ? atoi(getenv("CLIENT_T3")) : 30 };

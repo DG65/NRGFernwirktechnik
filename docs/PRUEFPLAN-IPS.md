@@ -25,7 +25,7 @@ Ordner der Bibliothek **mit `.git`** nach `C:\ProgramData\Symcon\modules\IEC101`
 | 3 | Server Socket liefert `Type` 1/2 (verbunden/getrennt) und `ClientIP`/`ClientPort` wie erwartet | Debug-Fenster der Instanz zeigt RX/TX je Client | (im Test #2 mitbestätigt: Antworten kamen an den richtigen Client zurück, aber Debug-Fenster nicht einzeln kontrolliert) |
 | 4 | Bytes ≥ 0x80 im Buffer des Server Sockets (APCI-Steuerfeld, Float-Werte) | Antworten byte-genau | ✅ mit Test #2: Float-Werte (Faktor −1, Zeitmarken) kamen korrekt an, also sind Bytes ≥ 0x80 unverändert durchgelaufen |
 | 5 | Zeitverhalten: t1/t2/t3 im 1-s-Takt des Timers | keine Abbrüche im Normalbetrieb | ✅ 22.09.2026, Langzeit-Ruhetest (`LONGRUN=270`, 4,5 Min ohne Datenverkehr): Verbindung stand durchgehend, keine ungewollte Trennung, Server hat 11× von sich aus TESTFR act geschickt (t3=20 s), 5/5 Prüfungen |
-| 6 | Zwei Verbindungen (Neuaufbau der Zentralstation) | zweite STARTDT übernimmt, alte bekommt keine Daten | offen |
+| 6 | Zwei Verbindungen (Neuaufbau der Zentralstation) | zweite STARTDT übernimmt, alte bekommt keine Daten | ✅ 22.09.2026, `TAKEOVER=1` von zwei Clients vom selben Mac: A bedient, B baut auf und übernimmt (STARTDT), B wird bedient, A bekommt auf eine erneute Generalabfrage keine Antwort mehr, A bleibt als TCP-Verbindung bestehen (nicht getrennt). 7/7 Prüfungen |
 | 7 | Bei Last (Generalabfrage 100+ Punkte, viele Änderungen) | keine Semaphore-Timeouts im Debug (Sperre) | offen (Test #2 lief mit 7 Punkten) |
 | 8 | Zustand im Puffer (`state`) wächst nicht unbegrenzt | Größe der Instanz im Rahmen (Warteschlange max. 1000) | offen |
 
