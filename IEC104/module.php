@@ -187,13 +187,46 @@ class IEC104 extends IPSModule
             ],
             'newsVersion' => '0.2',
             'doc' => [
-                'Symcon ist die gesteuerte Station (Server). Das Fernwirkgateway des Netzbetreibers ist die Zentralstation (Client) und baut die TCP-Verbindung auf (EWE NETZ: Port 2404; Gateway 10.0.0.1/30, Unterstation 10.0.0.2/30). Diesem Modul einen Server Socket als übergeordnete Instanz geben und den Port dort einstellen.',
-                'Eine aktive Verbindung: Nach STARTDT werden Daten gesendet. Baut die Zentralstation eine neue Verbindung auf und sendet STARTDT, übernimmt sie; die alte bekommt keine Daten mehr. Rahmen einer nicht gestarteten Verbindung werden ignoriert. Über t1 nicht quittierte Daten oder unbeantwortete Testrahmen beenden die Sitzung.',
+                'Was ist Fernwirktechnik überhaupt? Größere Erzeugungsanlagen (z. B. ab 100 kW, je nach Netzbetreiber) müssen dem Netzbetreiber laufend melden, wie viel Strom sie gerade einspeisen, und Vorgaben entgegennehmen, wie stark die Leistung gedrosselt werden soll (Redispatch). Diese Kommunikation läuft normalerweise über ein zusätzliches Gerät des Netzbetreibers, ein „Fernwirkgateway“. Dieses Modul lässt Symcon selbst diese Rolle übernehmen (die „gesteuerte Station“ bzw. „Server“) – das Fernwirkgateway des Netzbetreibers verbindet sich über das Netzwerk mit Symcon, genauso wie es sich sonst mit einem separaten Gerät verbinden würde.',
+                '🧭 So gehen Sie Schritt für Schritt vor:
+'
+                . '1. Technische Unterlagen des Netzbetreibers besorgen (Anforderungen zur fernwirktechnischen Anbindung samt Datenpunktliste). Darin stehen Port, Common-Adresse, die zu übertragenden Werte und wie die Netzwerkverbindung hergestellt wird (direktes Kabel, VPN-Router o. Ä.). Ohne diese Unterlagen kann die Einrichtung nicht beginnen.
+'
+                . '2. Die vom Netzbetreiber vorgegebene Netzwerkverbindung zum Fernwirkgateway herstellen (Kabel, ggf. VPN-Router) und dafür in Symcon eine „Server Socket“-Instanz anlegen, mit dem vom Netzbetreiber vorgegebenen Port (meist 2404).
+'
+                . '3. Diese Instanz („IEC104“) anlegen und den soeben erstellten Server Socket oben rechts als übergeordnete Instanz auswählen.
+'
+                . '4. Weiter unten bei „Vorlage“ den eigenen Netzbetreiber und, falls zutreffend, die Energieart bzw. Ressourcennummer auswählen, dazu die installierte Leistung (Pinst) und weitere Werte eintragen, dann „Vorlage laden“ klicken. Das trägt Port, Common-Adresse und die komplette Liste der Datenpunkte automatisch ein. Gibt es keine passende Vorlage, müssen die Werte im Formular von Hand nach den eigenen Unterlagen eingetragen werden.
+'
+                . '5. In der Tabelle „Datenpunkte“ bei jeder Zeile die zugehörige Symcon-Variable eintragen (siehe Hilfe-Knopf dort für die genaue Bedeutung der Spalten).
+'
+                . '6. Das Panel „Datenpunkte prüfen“ öffnen und kontrollieren, ob alle mit „Pflicht“ gekennzeichneten Zeilen eine Variable haben. Das Panel „Verbindungen“ zeigt, ob und wann sich das Fernwirkgateway zuletzt verbunden hat.
+'
+                . '7. Mit dem Netzbetreiber einen Termin für die Inbetriebnahme vereinbaren. Erst bei diesem Termin prüft der Netzbetreiber die Verbindung tatsächlich und nimmt sie ab – dieses Modul allein ersetzt das nicht.',
+                '📖 Kurz erklärt – die wichtigsten Begriffe:
+'
+                . '• Gesteuerte Station / Server = die eigene Anlage, hier: Symcon. Wartet auf die Verbindung, baut sie nie selbst auf.
+'
+                . '• Zentralstation / Fernwirkgateway = das Gerät bzw. System des Netzbetreibers, das die Verbindung aufbaut und abfragt.
+'
+                . '• STARTDT = das Signal, mit dem das Fernwirkgateway den eigentlichen Datenfluss einschaltet; erst danach werden Meldungen und Messwerte übertragen.
+'
+                . '• Meldung = ein Zustand mit wenigen möglichen Werten, z. B. „Schalter EIN/AUS“ oder „Störung ja/nein“.
+'
+                . '• Messwert = eine Zahl, die laufend gemeldet wird, z. B. eine Leistung in kW oder MW.
+'
+                . '• Befehl = eine Schaltanweisung vom Netzbetreiber an die Anlage.
+'
+                . '• Sollwert = eine Zahlen-Vorgabe vom Netzbetreiber, z. B. „nur noch 60 % der maximalen Leistung“.
+'
+                . '• Adresse (IOA) = die eindeutige „Anschrift“ eines einzelnen Datenpunkts, damit Netzbetreiber und Anlage über denselben Wert sprechen. Wird vom Netzbetreiber vorgegeben.',
+                'Eine aktive Verbindung: Nach STARTDT werden Daten gesendet. Baut die Zentralstation eine neue Verbindung auf und sendet STARTDT, übernimmt sie; die alte bekommt keine Daten mehr, bleibt aber bestehen, bis sie getrennt wird. Rahmen einer nicht gestarteten Verbindung werden ignoriert. Über t1 nicht quittierte Daten oder unbeantwortete Testrahmen beenden die Sitzung.',
                 'Nach einem Verbindungsabbruch gehen nicht quittierte Meldungen verloren (die 104 setzt nicht über Verbindungen hinweg auf); die Zentralstation holt den Stand mit einer Generalabfrage. Beim STARTDT wird die Warteschlange geleert und „Initialisierung beendet“ gemeldet.',
                 'Nicht umgesetzt: Dateiübertragung, Zählwerte, Uhrzeitsynchronisation der Symcon-Uhr (wird nur quittiert), „AUS mit Netztrennung“ bzw. Sofort-AUS (das ist bei EWE NETZ ein Binärkontakt am Gateway, hart verdrahtet und nie über 104 oder Symcon), Erstanlauf-Grundeinstellung (P 100 %, cos φ 1: Ziel-Variablen entsprechend vorbelegen).',
                 'Entprellung im Millisekundenbereich (10 ms) ist im Symcon-Kernel nicht möglich; Flatterunterdrückung (mehr als 0,5 Hz, 30 s Stillsetzung) und Zwischen- und Störstellungsunterdrückung sind umgesetzt.',
+                '⚠️ Stand der Prüfung: Das Protokoll ist gegen einen unabhängigen Master (lib60870) und im echten IP-Symcon-Server erfolgreich getestet (Verbindungsaufbau, Generalabfrage, Sollwerte, Übernahme durch eine zweite Verbindung, Last). Nicht getestet: der Serial Port im IPS (betrifft nur IEC101), eine echte Gegenstelle eines Netzbetreibers, die Abnahme durch einen Netzbetreiber. Dieses Modul ersetzt keine Abnahme – ob der eigene Netzbetreiber Symcon überhaupt als Fernwirkgerät akzeptiert, muss vorher mit ihm geklärt werden.',
                 'Sicherheit bei EWE NETZ (Kapitel 7.3): Für die Dauer der Verbindung mit dem Fernwirkgateway darf die Hardware nicht gleichzeitig mit einem anderen Weitverkehrsnetz (z. B. Internet) verbunden sein. Ein Symcon-Rechner, der ins Internet geht, erfüllt das nur mit einer getrennten, nicht routenden Netzwerkschnittstelle zum Gateway; ob das für die Abnahme reicht, entscheidet der Netzbetreiber. EWF bindet über einen VPN-Router an. Zeitmarken (UTC oder Ortszeit), Abnahme und Netztrennung: siehe docs/KLAERUNG.md.',
-                'Getrennte Kanäle: Diese Anbindung ist die Fernwirktechnik zum Netzbetreiber (§ 9 EEG, § 13 EnWG). Die Direktvermarkter-Schnittstelle (§ 10b EEG) ist ein eigener Kanal; Netzbetreiber verlangen ausdrücklich die Trennung.',
+                'Getrennte Kanäle: Diese Anbindung ist die Fernwirktechnik zum Netzbetreiber (§ 9 EEG, § 13 EnWG). Die Direktvermarkter-Schnittstelle (§ 10b EEG, z. B. für einen Vermarkter der eingespeisten Energie) ist ein eigener, davon getrennter Kanal; Netzbetreiber verlangen ausdrücklich die Trennung beider Strecken.',
             ],
             'feedbackUrl' => '',
         ];
@@ -212,13 +245,27 @@ class IEC104 extends IPSModule
                     'Jede Meldung und jeder zeitgestempelte Messwert trägt eine Zeitmarke (CP56Time2a). Ob die Zentralstation sie als Ortszeit (mit Sommerzeitbit) oder als UTC erwartet, ist in den vorliegenden Unterlagen nicht festgelegt.',
                     'Belegt ist nur: die Uhrzeit, die die EWE-NETZ-Zentralstation sendet, ist Ortszeit mit Sommerzeitbit. Die EWE-Vorlage stellt deshalb „Ortszeit“ ein; das ist eine Annahme, bei EWE NETZ bestätigen lassen. Zeigt der Test einen Versatz von ein bis zwei Stunden, hier umstellen.',
                 ], 480));
+                array_unshift($e['items'], $this->helpButton('Woher bekomme ich Port, Common-Adresse und die übrigen Werte?', [
+                    'Diese Technik spricht in Adressen, ähnlich einer Postanschrift: Der Server Socket (Port) benennt, wo Symcon im Netzwerk erreichbar ist – das entspricht in etwa einer Telefonnummer. Die Common-Adresse benennt die Anlage bzw. Station dahinter (wie eine Postleitzahl). Jeder einzelne Messwert oder Befehl hat zusätzlich noch eine eigene Objektadresse (IOA, wie eine Zimmernummer) – die steht in der Tabelle „Datenpunkte“ weiter unten.',
+                    'Alle diese Werte legt der Netzbetreiber fest, nicht Symcon und nicht der Anlagenbetreiber. Sie stehen in den technischen Unterlagen zur Fernwirkanbindung. Bitte nichts raten oder frei erfinden – ein falscher Wert führt dazu, dass die Zentralstation die Antworten nicht zuordnen kann oder sich gar nicht erst verbindet.',
+                    'Der schnellste Weg: Unten bei „Vorlage“ den eigenen Netzbetreiber wählen und „Vorlage laden“ klicken – das trägt Port, Common-Adresse und die komplette Datenpunktliste automatisch ein. Nur wenn keine passende Vorlage existiert, müssen diese Felder von Hand nach den Unterlagen des Netzbetreibers ausgefüllt werden.',
+                ], 520));
             }
             if (($e['caption'] ?? '') === 'Zeitüberwachung und Fenster (t0–t3, k, w)') {
-                array_unshift($e['items'], $this->helpButton('Was sind t0 bis t3, k und w?', [
-                    't1: so lange darf eine gesendete Meldung oder ein Testrahmen unquittiert bleiben, bevor die Sitzung beendet wird. t2: so lange wartet das Modul mit der Quittung eines Empfangs, wenn keine Daten zurückgehen (t2 kleiner als t1). t3: nach so viel Ruhe wird ein Testrahmen (TESTFR) gesendet. t0: so lange darf eine neue Verbindung ohne jeden Rahmen bleiben.',
-                    'k: so viele Meldungen dürfen unquittiert unterwegs sein. w: nach so vielen empfangenen Rahmen wird spätestens quittiert (höchstens k).',
+                array_unshift($e['items'], $this->helpButton('Was sind t0 bis t3, k und w – und muss ich das wirklich verstehen?', [
+                    'Kurz gesagt: nein, in der Regel reicht es, unten „Vorlage laden“ zu klicken – das trägt die vom jeweiligen Netzbetreiber vorgegebenen Werte automatisch ein. Diese Erklärung ist nur für den Fall, dass etwas davon manuell angepasst werden muss.',
+                    't1: so lange darf eine gesendete Meldung oder ein Testrahmen unquittiert bleiben, bevor die Sitzung beendet wird. t2: so lange wartet das Modul mit der Quittung eines Empfangs, wenn keine Daten zurückgehen (t2 kleiner als t1). t3: nach so viel Ruhe wird ein Testrahmen (TESTFR) gesendet, damit beide Seiten merken, ob die Verbindung noch lebt. t0: so lange darf eine neue Verbindung ohne jeden Rahmen bleiben, bevor sie verworfen wird.',
+                    'k: so viele Meldungen dürfen unquittiert unterwegs sein, bevor das Modul mit dem Senden pausiert. w: nach so vielen empfangenen Rahmen wird spätestens quittiert (höchstens k).',
                     'EWE NETZ (Kompatibilitätsliste): t0 30 s, t1 15 s, t2 10 s, t3 20 s, k 12, w 8. EWF: t0 30 s, t1 250 s, t2 240 s, t3 255 s (k und w nicht angegeben). „Vorlage laden“ trägt diese Werte ein.',
-                ], 520));
+                ], 540));
+            }
+            if (($e['caption'] ?? '') === 'Verhalten') {
+                array_unshift($e['items'], $this->helpButton('Was bedeuten Schwelle, Zwangsaktualisierung, Ausfallwert und Ort-Betrieb?', [
+                    'Schwelle (%) und kleinste Schwelle: Ein Messwert wird erst gemeldet, wenn er sich um mindestens diesen Anteil verändert hat – das verhindert, dass bei jeder winzigen Schwankung eine Meldung rausgeht. Bei einzelnen Datenpunkten kann in der Tabelle eine eigene, abweichende Schwelle eingetragen werden; „Vorlage laden“ berechnet sie bei EWE NETZ automatisch aus Pinst und PAV.',
+                    'Spätestens nach (Sekunden) erneut senden: Auch ohne Änderung wird ein Messwert nach dieser Zeit trotzdem einmal neu gemeldet, damit die Zentralstation sicher weiß, dass die Verbindung noch lebt (Zwangsaktualisierung; EWE NETZ verlangt 300 Sekunden).',
+                    'Ausfall der Zentralstation / Ausfallwert: Meldet sich die Zentralstation so lange nicht mehr (Stunden), springen Sollwerte auf den in der Tabelle „Datenpunkte“ hinterlegten Ausfallwert. 0 = diese Sicherung ist ausgeschaltet, der letzte empfangene Sollwert bleibt bestehen – das ist bei EWE NETZ ausdrücklich so verlangt.',
+                    'Ort-Betrieb: Eine Symcon-Variable, die anzeigt, ob die Anlage gerade „vor Ort“ (von Hand) bedient wird. Ist sie wahr, lehnt das Modul Fernbefehle vom Netzbetreiber ab – zum Schutz, damit sich Vor-Ort-Bedienung und Fernsteuerung nicht in die Quere kommen.',
+                ], 540));
             }
             if (($e['caption'] ?? '') === 'Datenpunkte') {
                 array_splice($e['items'], 1, 0, [$this->helpButton('Was bedeuten Faktor, Schwelle, Rückmeldung und Pflicht?', [

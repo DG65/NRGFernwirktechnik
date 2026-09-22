@@ -12,7 +12,7 @@
       "items": [
         {
           "type": "Label",
-          "caption": "Symcon ist hier die gesteuerte Station (Server): das Fernwirkgateway des Netzbetreibers baut die Verbindung auf und fragt ab (IEC 60870-5-104). Den Server Socket als übergeordnete Instanz wählen und dort den Port eintragen (Standard 2404). Adress- und Telegrammlängen sind in der 104 festgelegt (Common-Adresse 2 Byte, Übertragungsursache 2 Byte, Objektadresse 3 Byte)."
+          "caption": "Symcon ist hier die gesteuerte Station: die Gegenstelle des Netzbetreibers (das Fernwirkgateway, auch Zentralstation genannt) baut die Netzwerkverbindung auf und fragt ab. Dafür braucht diese Instanz einen „Server Socket“ als übergeordnete Instanz (oben rechts wählen) – legen Sie den vorher an, mit dem Port, den der Netzbetreiber vorgibt (meist 2404). Die Werte auf dieser Seite stehen NICHT zur freien Wahl – sie stehen in den technischen Unterlagen des Netzbetreibers zur Fernwirkanbindung. Am einfachsten: weiter unten unter „Vorlage“ zuerst die passende Vorlage des eigenen Netzbetreibers laden."
         },
         {
           "type": "NumberSpinner",
@@ -164,7 +164,7 @@
       "items": [
         {
           "type": "Label",
-          "caption": "Meldungen (30, 31) und Messwerte (36, 13): die Quell-Variable im Feld „Variable“ eintragen. Befehle (45, 46) und Sollwerte (50): die Ziel-Variable, in die geschrieben wird; Varianten mit Zeitmarke (58, 59, 63) werden mit angenommen. Punkte ohne Variable werden nicht gemeldet; Rückmeldepunkte, auf die ein Sollwert oder Befehl zeigt, werden vom Modul selbst geführt. Faktor: Wert auf der Leitung = Wert der Variable × Faktor (z. B. −1 für „Erzeugung negativ“)."
+          "caption": "Hier verknüpfen Sie jeden Datenpunkt aus der Liste des Netzbetreibers mit einer Symcon-Variablen. Bei Meldungen und Messwerten (Typ 30, 31, 36, 13) tragen Sie die Variable ein, die den Wert liefert (die Symcon-Variable, die z. B. die Leistung misst). Bei Befehlen und Sollwerten (Typ 45, 46, 50, auch mit Zeitmarke: 58, 59, 63) tragen Sie die Variable ein, in die der vom Netzbetreiber empfangene Wert geschrieben werden soll. Eine Zeile ohne Variable wird einfach nicht gemeldet bzw. bleibt wirkungslos – so lassen sich auch Punkte weglassen, die für die eigene Anlage nicht zutreffen. Faktor: Wert auf der Leitung = Wert der Variable × Faktor (z. B. −1, wenn „Erzeugung“ in der Symcon-Variable positiv gezählt wird, der Netzbetreiber aber „Erzeugung negativ“ verlangt)."
         },
         {
           "type": "List",

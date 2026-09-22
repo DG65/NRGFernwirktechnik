@@ -156,6 +156,19 @@ class IEC101 extends IPSModule
                     'Jede Meldung und jeder zeitgestempelte Messwert trägt eine Zeitmarke (CP56Time2a). Ob der Netzbetreiber sie als Ortszeit (mit Sommerzeitbit) oder als UTC erwartet, hängt von seiner Zentralstation ab.',
                     'In den Unterlagen von E-Werk Netze V4.0 steht dazu nichts. Bis das mit dem Netzbetreiber geklärt ist, ist „UTC“ die Vorgabe. Stellt sich beim Test ein Versatz von ein bis zwei Stunden heraus, hier umstellen.',
                 ], 480));
+                array_unshift($e['items'], $this->helpButton('Woher bekomme ich Linkadresse, Common-Adresse und die übrigen Werte?', [
+                    'Diese Technik spricht in Adressen, ähnlich einer Postanschrift: Die Linkadresse benennt das Gerät auf der seriellen Leitung (wie eine Hausnummer), die Common-Adresse benennt die Anlage bzw. Station dahinter (wie eine Postleitzahl). Jeder einzelne Messwert oder Befehl hat zusätzlich noch eine eigene Objektadresse (IOA, wie eine Zimmernummer) – die steht in der Tabelle „Datenpunkte“ weiter unten.',
+                    'Alle diese Werte legt der Netzbetreiber fest, nicht Symcon und nicht der Anlagenbetreiber. Sie stehen in den technischen Unterlagen zur Fernwirkanbindung. Bitte nichts raten oder frei erfinden – ein falscher Wert führt dazu, dass die Zentralstation die Antworten nicht zuordnen kann.',
+                    'Der schnellste Weg: Unten bei „Vorlage“ den eigenen Netzbetreiber wählen und „Vorlage laden“ klicken – das trägt Linkadresse, Common-Adresse, Längen und die komplette Datenpunktliste automatisch ein. Nur wenn keine passende Vorlage existiert, müssen diese Felder von Hand nach den Unterlagen des Netzbetreibers ausgefüllt werden.',
+                ], 520));
+            }
+            if (($e['caption'] ?? '') === 'Verhalten') {
+                array_unshift($e['items'], $this->helpButton('Was bedeuten Schwelle, Zwangsaktualisierung, Ausfallwert und Ort-Betrieb?', [
+                    'Schwelle (%) und kleinste Schwelle: Ein Messwert wird erst gemeldet, wenn er sich um mindestens diesen Anteil verändert hat – das verhindert, dass bei jeder winzigen Schwankung eine Meldung rausgeht. Bei einzelnen Datenpunkten kann in der Tabelle eine eigene, abweichende Schwelle eingetragen werden.',
+                    'Spätestens nach (Sekunden) erneut senden: Auch ohne Änderung wird ein Messwert nach dieser Zeit trotzdem einmal neu gemeldet, damit die Zentralstation sicher weiß, dass die Verbindung noch lebt (Zwangsaktualisierung).',
+                    'Ausfall des Kommunikationsmoduls / Ausfallwert: Meldet sich das Kommunikationsmodul so lange nicht mehr (Stunden), springen Sollwerte auf den in der Tabelle „Datenpunkte“ hinterlegten Ausfallwert – z. B. auf 100 % Leistung, damit die Anlage im Zweifel nicht unnötig gedrosselt bleibt. 0 = diese Sicherung ist ausgeschaltet.',
+                    'Ort-Betrieb: Eine Symcon-Variable, die anzeigt, ob die Anlage gerade „vor Ort“ (von Hand) bedient wird. Ist sie wahr, lehnt das Modul Fernbefehle vom Netzbetreiber ab – zum Schutz, damit sich Vor-Ort-Bedienung und Fernsteuerung nicht in die Quere kommen.',
+                ], 520));
             }
             if (($e['caption'] ?? '') === 'Datenpunkte') {
                 array_splice($e['items'], 1, 0, [$this->helpButton('Was bedeuten Faktor, Schwelle, Rückmeldung und Pflicht?', [
@@ -207,11 +220,41 @@ class IEC101 extends IPSModule
             ],
             'newsVersion' => '0.2',
             'doc' => [
-                'Dieses Modul macht Symcon zur kundeneigenen Fernwirkstation gegenüber dem Kommunikationsmodul eines Netzbetreibers (IEC 60870-5-101 über RS-485). Es ersetzt keine Abnahme: Ob ein Netzbetreiber Symcon als Fernwirkgerät akzeptiert, ist mit ihm vorher zu klären, ebenso Inbetriebnahmeprotokoll, Wirk- und Blindleistungstest.',
+                'Was ist Fernwirktechnik überhaupt? Größere Erzeugungsanlagen (z. B. ab 100 kW oder 500 kW, je nach Netzbetreiber) müssen dem Netzbetreiber laufend melden, wie viel Strom sie gerade einspeisen, und Vorgaben entgegennehmen, wie stark die Leistung gedrosselt werden soll (Redispatch). Diese Kommunikation läuft normalerweise über ein zusätzliches Gerät des Netzbetreibers, ein „Fernwirkgerät“ bzw. „Kommunikationsmodul“. Dieses Modul lässt Symcon selbst diese Rolle übernehmen (die „Unterstation“) – der Netzbetreiber fragt Symcon genauso ab, wie er sonst das separate Gerät abfragen würde.',
+                '🧭 So gehen Sie Schritt für Schritt vor:
+'
+                . '1. Technische Unterlagen des Netzbetreibers besorgen (oft „Kunden-Richtlinie Fernwirkanbindung“ oder „Datenpunktliste“ genannt). Darin stehen alle Adressen, Einstellungen und die Liste der zu übertragenden Werte. Ohne diese Unterlagen kann die Einrichtung nicht beginnen.
+'
+                . '2. RS-485-Adapter am Symcon-Rechner anschließen, dafür eine „Serial Port“-Instanz anlegen und Baudrate, Parität und Stoppbits exakt nach den Unterlagen des Netzbetreibers einstellen (Standard: 19200 Baud, 8 Datenbits, gerade Parität, 1 Stoppbit).
+'
+                . '3. Diese Instanz („IEC101“) anlegen und den soeben erstellten Serial Port oben rechts als übergeordnete Instanz auswählen.
+'
+                . '4. Weiter unten bei „Vorlage“ den eigenen Netzbetreiber auswählen und „Vorlage laden“ klicken. Das trägt die passenden Adressen und die komplette Liste der Datenpunkte automatisch ein. Gibt es keine passende Vorlage, müssen die Werte im Formular von Hand nach den eigenen Unterlagen eingetragen werden.
+'
+                . '5. In der Tabelle „Datenpunkte“ bei jeder Zeile die zugehörige Symcon-Variable eintragen (siehe Hilfe-Knopf dort für die genaue Bedeutung der Spalten).
+'
+                . '6. Das Panel „Datenpunkte prüfen“ öffnen und kontrollieren, ob alle mit „Pflicht“ gekennzeichneten Zeilen eine Variable haben.
+'
+                . '7. Mit dem Netzbetreiber einen Termin für die Inbetriebnahme vereinbaren (bei E-Werk Netze mindestens acht Wochen vorher). Erst bei diesem Termin prüft der Netzbetreiber die Verbindung tatsächlich und nimmt sie ab – dieses Modul allein ersetzt das nicht.',
+                '📖 Kurz erklärt – die wichtigsten Begriffe:
+'
+                . '• Unterstation = die eigene Anlage, hier: Symcon. Wird vom Netzbetreiber abgefragt, meldet sich nie von sich aus an.
+'
+                . '• Zentralstation = das Gerät bzw. System des Netzbetreibers, das anruft/abfragt und die Antworten empfängt.
+'
+                . '• Meldung = ein Zustand mit wenigen möglichen Werten, z. B. „Schalter EIN/AUS“ oder „Störung ja/nein“.
+'
+                . '• Messwert = eine Zahl, die laufend gemeldet wird, z. B. eine Leistung in kW oder eine Spannung.
+'
+                . '• Befehl = eine Schaltanweisung vom Netzbetreiber an die Anlage, z. B. „Schalter aus“.
+'
+                . '• Sollwert = eine Zahlen-Vorgabe vom Netzbetreiber, z. B. „nur noch 60 % der maximalen Leistung“.
+'
+                . '• Adresse (IOA) = die eindeutige „Anschrift“ eines einzelnen Datenpunkts, damit Netzbetreiber und Anlage über denselben Wert sprechen. Wird vom Netzbetreiber vorgegeben.',
                 'Vorlage E-Werk Netze V4.0: Datenpunktliste der „Kunden-Richtlinie für Fernwirkanbindungen“ (Stand 11.02.2026). Andere Netzbetreiber nutzen dieselbe Grundstruktur mit abweichenden Adressen und Einheiten; Adresslängen, Zeitmarken, Faktoren und Punkte sind deshalb frei einstellbar.',
                 'Entprellung im Millisekundenbereich (10 ms) ist im Symcon-Kernel nicht möglich; die Flatterunterdrückung (mehr als 0,5 Hz, 30 s Stillsetzung) und die Zwischen- und Störstellungsunterdrückung sind umgesetzt.',
-                'Stand der Prüfung: Protokoll gegen einen unabhängigen Master (lib60870) und eigene Tests geprüft. Der Serial Port im IPS, das Zeitverhalten, eine echte Gegenstelle und die Abnahme durch den Netzbetreiber sind noch nicht getestet.',
-                'Getrennte Kanäle: Diese Anbindung ist die Fernwirktechnik zum Netzbetreiber (§ 9 EEG, § 13 EnWG). Die Direktvermarkter-Schnittstelle (§ 10b EEG) ist ein eigener Kanal; Netzbetreiber verlangen ausdrücklich die Trennung.',
+                '⚠️ Stand der Prüfung: Protokoll gegen einen unabhängigen Master (lib60870) und eigene Tests geprüft. Der Serial Port im IPS, das Zeitverhalten, eine echte Gegenstelle und die Abnahme durch den Netzbetreiber sind noch nicht getestet. Dieses Modul ersetzt keine Abnahme – ob der eigene Netzbetreiber Symcon überhaupt als Fernwirkgerät akzeptiert, muss vorher mit ihm geklärt werden.',
+                'Getrennte Kanäle: Diese Anbindung ist die Fernwirktechnik zum Netzbetreiber (§ 9 EEG, § 13 EnWG). Die Direktvermarkter-Schnittstelle (§ 10b EEG, z. B. für einen Vermarkter der eingespeisten Energie) ist ein eigener, davon getrennter Kanal; Netzbetreiber verlangen ausdrücklich die Trennung beider Strecken.',
                 'Zeitmarken, Abnahme und Netztrennung (ausführlich in docs/KLAERUNG.md): Ob Zeitmarken UTC oder Ortszeit sein sollen, steht in den vorliegenden Unterlagen nicht. Die Abnahme erfolgt durch den Netzbetreiber am Netzanschlusspunkt. Bei EWE NETZ gilt zusätzlich: die kundenseitige Fernwirkhardware darf während der Verbindung nicht zugleich über dieselbe Hardware mit einem WAN (z. B. Internet) verbunden sein.',
             ],
             'feedbackUrl' => '',

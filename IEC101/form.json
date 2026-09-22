@@ -12,12 +12,12 @@
       "items": [
         {
           "type": "Label",
-          "caption": "Symcon ist hier die Unterstation (Slave); das Kommunikationsmodul des Netzbetreibers fragt ab (IEC 60870-5-101, unsymmetrisch). Der Serial Port darunter muss auf die Vorgaben des Netzbetreibers stehen, z. B. 19200 Baud, 8 Datenbits, gerade Parität, 1 Stoppbit."
+          "caption": "Symcon ist hier die Unterstation: die Gegenstelle des Netzbetreibers (die Zentralstation) fragt in regelmäßigen Abständen ab, Symcon antwortet. Die Werte auf dieser Seite (Linkadresse, Common-Adresse, Längen, Zeitmarken) stehen NICHT zur freien Wahl – sie stehen in den technischen Unterlagen, die der Netzbetreiber für die Fernwirkanbindung mitgibt (oft „Kunden-Richtlinie Fernwirkanbindung“ oder „Datenpunktliste“ genannt). Am einfachsten: weiter unten unter „Vorlage“ zuerst die passende Vorlage des eigenen Netzbetreibers laden – das setzt die meisten dieser Werte automatisch richtig."
         },
         {
           "type": "NumberSpinner",
           "name": "LinkAddress",
-          "caption": "Linkadresse",
+          "caption": "Linkadresse (vom Netzbetreiber vorgegeben)",
           "minimum": 0,
           "maximum": 65534
         },
@@ -39,7 +39,7 @@
         {
           "type": "NumberSpinner",
           "name": "CommonAddress",
-          "caption": "Common-Adresse (ASDU-Adresse)",
+          "caption": "Common-Adresse / ASDU-Adresse (vom Netzbetreiber vorgegeben)",
           "minimum": 0,
           "maximum": 65534
         },
@@ -179,7 +179,7 @@
       "items": [
         {
           "type": "Label",
-          "caption": "Meldungen (30, 31) und Messwerte (36, 13): die Quell-Variable im Feld „Variable“ eintragen. Befehle (45, 46) und Sollwerte (50): die Ziel-Variable, in die geschrieben wird. Punkte ohne Variable werden nicht gemeldet; Rückmeldepunkte, auf die ein Sollwert oder Befehl zeigt, werden vom Modul selbst geführt. Faktor: Wert auf der Leitung = Wert der Variable × Faktor (z. B. −1 für „Erzeugung negativ“)."
+          "caption": "Hier verknüpfen Sie jeden Datenpunkt aus der Liste des Netzbetreibers mit einer Symcon-Variablen. Bei Meldungen und Messwerten (Typ 30, 31, 36, 13) tragen Sie die Variable ein, die den Wert liefert (die Symcon-Variable, die z. B. die Leistung misst). Bei Befehlen und Sollwerten (Typ 45, 46, 50) tragen Sie die Variable ein, in die der vom Netzbetreiber empfangene Wert geschrieben werden soll. Eine Zeile ohne Variable wird einfach nicht gemeldet bzw. bleibt wirkungslos – so lassen sich auch Punkte weglassen, die für die eigene Anlage nicht zutreffen. Faktor: Wert auf der Leitung = Wert der Variable × Faktor (z. B. −1, wenn „Erzeugung“ in der Symcon-Variable positiv gezählt wird, der Netzbetreiber aber „Erzeugung negativ“ verlangt)."
         },
         {
           "type": "List",
