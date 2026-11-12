@@ -20,7 +20,8 @@ function GetValue(int $id): mixed { return $GLOBALS['ips']['vars'][$id]['v']; }
 function SetValueInteger(int $id, int $v): void { $GLOBALS['ips']['vars'][$id]['v'] = $v; $GLOBALS['ips']['vars'][$id]['u'] = time(); }
 function SetValueFloat(int $id, float $v): void { $GLOBALS['ips']['vars'][$id]['v'] = $v; $GLOBALS['ips']['vars'][$id]['u'] = time(); }
 function RequestAction(int $id, mixed $v): void { $GLOBALS['ips']['actions'][] = [$id, $v]; $GLOBALS['ips']['vars'][$id]['v'] = $v; }
-function IPS_GetVariable(int $id): array { return ['VariableType' => $GLOBALS['ips']['vars'][$id]['t'], 'VariableUpdated' => $GLOBALS['ips']['vars'][$id]['u'] ?? 0]; }
+function SetValue(int $id, mixed $v): void { $GLOBALS['ips']['setvalue'][] = [$id, $v]; $GLOBALS['ips']['vars'][$id]['v'] = $v; $GLOBALS['ips']['vars'][$id]['u'] = time(); }
+function IPS_GetVariable(int $id): array { return ['VariableType' => $GLOBALS['ips']['vars'][$id]['t'], 'VariableUpdated' => $GLOBALS['ips']['vars'][$id]['u'] ?? 0, 'VariableAction' => $GLOBALS['ips']['vars'][$id]['a'] ?? 1, 'VariableCustomAction' => $GLOBALS['ips']['vars'][$id]['ca'] ?? 0]; }
 function IPS_GetKernelRunlevel(): int { return KR_READY; }
 function IPS_SemaphoreEnter(string $n, int $t): bool { return true; }
 function IPS_SemaphoreLeave(string $n): bool { return true; }

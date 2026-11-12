@@ -327,6 +327,9 @@ class IEC101 extends IPSModule
                 } else {
                     $raw = GetValue($p['var']);
                     $state = '#' . $p['var'] . ' = ' . json_encode($raw) . ($p['factor'] != 1.0 && is_numeric($raw) ? ' -> ' . ($raw * $p['factor']) . ' auf der Leitung' : '');
+                    if ($p['type'] >= 45 && $p['type'] <= 64 && !FW_IpsHost::hasAction($p['var'])) {
+                        $state .= '   (keine Aktion: Wert wird direkt gesetzt, nichts geschaltet)';
+                    }
                     $mapped++;
                 }
             }

@@ -26,12 +26,29 @@ final class FW_IpsHost implements FW101_Host
             return false;
         }
         try {
-            RequestAction($varId, $value);
+            if (self::hasAction($varId)) {
+                RequestAction($varId, $value);
+            } else {
+                // Ziel ohne Aktion (z. B. reine Speicher-Variable): Wert direkt setzen statt
+                // RequestAction, das sonst "No valid action available" als Warnung meldet.
+                SetValue($varId, $value);
+            }
             return true;
         } catch (Throwable $e) {
             ($this->cb['log'])('RequestAction #' . $varId . ' fehlgeschlagen: ' . $e->getMessage());
             return false;
         }
+    }
+
+    /** Hat die Variable eine wirksame Aktion? CustomAction 0 = Standardaktion, 1 = keine, sonst Skript/Aktion. */
+    public static function hasAction(int $varId): bool
+    {
+        $v = IPS_GetVariable($varId);
+        $custom = (int) ($v['VariableCustomAction'] ?? 0);
+        if ($custom === 1) {
+            return false;
+        }
+        return $custom > 1 || (int) ($v['VariableAction'] ?? 0) > 0;
     }
 
     public function varType(int $varId): int

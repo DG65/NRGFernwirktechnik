@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+- Fix: Sollwerte und Befehle auf eine Ziel-Variable ohne Aktion lösten „Warning: No valid action available“ aus (FW_IpsHost.php Zeile 29), vor allem beim Wiederherstellen der Sollwerte nach dem Symcon-Start (KR_READY). Hat die Variable keine Aktion, wird der Wert jetzt direkt gesetzt (SetValue); mit Aktion bleibt es bei RequestAction.
+- „Datenpunkte prüfen“ zeigt bei Befehls-/Sollwertpunkten an, wenn die Ziel-Variable keine Aktion hat (Wert wird nur gesetzt, nichts geschaltet).
+
 ## 0.2.0
 - Doku und Hilfe für Laien überarbeitet: „Dokumentation & Hilfe“ beginnt jetzt mit einer Schritt-für-Schritt-Anleitung und einem Glossar der wichtigsten Begriffe (Unterstation/Zentralstation, Meldung/Messwert/Befehl/Sollwert, Adresse); neue Hilfe-Knöpfe zur Adressierung (Linkadresse/Common-Adresse bzw. Port/Common-Adresse), zu t0–t3/k/w und zu Schwelle/Zwangsaktualisierung/Ausfallwert/Ort-Betrieb; die einleitenden Texte der Fachpanels erklären jetzt, dass die Werte vom Netzbetreiber vorgegeben sind, nicht frei wählbar.
 - Erster Test im echten IPS: IEC104 gegen lib60870 im LAN, 26 von 27 Prüfungen bestanden (der eine ist erwartetes Verhalten bei kurzer Testdauer), dazu ein Langzeit-Ruhetest (4,5 Minuten, 11 eigene TESTFR-Zyklen des Servers, kein Abbruch). Details `docs/PRUEFPLAN-IPS.md`.
